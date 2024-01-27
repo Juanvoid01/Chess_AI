@@ -41,6 +41,8 @@ struct Move
         {
             result.append("+");
         }
+        return result;
+        
     }
 
 };
