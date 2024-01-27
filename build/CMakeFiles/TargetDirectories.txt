@@ -1,3 +1,0 @@
-/home/juan/Desktop/workspace/Chess_AI/build/CMakeFiles/chess_AI.dir
-/home/juan/Desktop/workspace/Chess_AI/build/CMakeFiles/edit_cache.dir
-/home/juan/Desktop/workspace/Chess_AI/build/CMakeFiles/rebuild_cache.dir
