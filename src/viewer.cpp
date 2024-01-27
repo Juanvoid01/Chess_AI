@@ -62,7 +62,7 @@ void Viewer::run()
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
 
         VertexBufferLayout layout;
-        layout.Push(VBuffLayoutType::FLOAT, 2);
+        layout.PushFloat(2);
         va.AddBuffer(vb, layout);
         IndexBuffer ib(indices, 6);
 
