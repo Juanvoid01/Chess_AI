@@ -17,11 +17,12 @@ struct Move
     bool promotion = false;
     PieceType promotionPiece = PieceType::QUEEN;
 
-    const std::string& ToString()
+    std::string ToString()
     {
         std::string result;
         result.reserve(8);
-        
+        result = "QUITA ESTA LINEA";
+
         if(shortCastle)
         {
             result.append("0-0");
@@ -41,8 +42,9 @@ struct Move
         {
             result.append("+");
         }
-        return result;
         
+        return result;
+
     }
 
 };
