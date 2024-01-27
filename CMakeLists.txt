@@ -20,6 +20,10 @@ src/utils/IndexBuffer.cpp
 src/utils/VertexBufferLayout.hpp
 src/utils/VertexArray.cpp
 src/utils/Shader.cpp
+src/objects/Piece.cpp
+src/objects/Square.cpp
+src/objects/Board.cpp
+src/objects/Move.hpp
 )
 
 target_compile_options(chess_AI PRIVATE -g)
