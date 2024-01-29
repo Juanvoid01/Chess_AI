@@ -2,12 +2,13 @@
 #include "Piece.hpp"
 #include <string>
 
-
 struct Move
 {
 
-    int row;
-    int col;
+    int iniRow;
+    int iniCol;
+    int endRow;
+    int endCol;
     PieceType piece;
     bool capture = false;
     bool check = false;
@@ -15,36 +16,101 @@ struct Move
     bool shortCastle = false;
     bool longCastle = false;
     bool promotion = false;
+    bool specifyIniRow = false;
+    bool specifyIniCol = false;
     PieceType promotionPiece = PieceType::QUEEN;
 
     std::string ToString()
     {
         std::string result;
         result.reserve(8);
-        result = "QUITA ESTA LINEA";
 
-        if(shortCastle)
+        if (shortCastle)
         {
             result.append("0-0");
         }
-        else if(longCastle)
+        else if (longCastle)
         {
             result.append("0-0-0");
         }
+        else
+        {
+            if (piece == PieceType::PAWN)
+            {
+                result.append("" + colToChar(iniCol));
+            }
+            else
+            {
+                result.append("" + pieceTypeToChar(piece));
+            }
+
+            if (specifyIniCol)
+            {
+                result.append("" + colToChar(iniCol));
+            }
+
+            if (specifyIniRow)
+            {
+                result.append("" + ('0' + iniRow));
+            }
+
+            if (capture)
+            {
+                result.append("" + 'x');
+            }
+
+            result.append("" + colToChar(endCol) + ('0' + endRow));
 
 
+            if(promotion)
+            {
+                result.append("=" + pieceTypeToChar(piece)); 
+            }
+        }
 
-        if(checkMate)
+        if (checkMate)
         {
             result.append("#");
         }
-        else if(check)
+        else if (check)
         {
             result.append("+");
         }
-        
-        return result;
 
+        return result;
     }
 
+private:
+    char colToChar(int col)
+    {
+        if (col < 1 || col > 8)
+            return '0'; // error
+
+        return 'a' + col - 1;
+    }
+
+    char pieceTypeToChar(PieceType type)
+    {
+        switch (type)
+        {
+        case PieceType::KING:
+            return 'K';
+            break;
+        case PieceType::QUEEN:
+            return 'Q';
+            break;
+        case PieceType::KNIGHT:
+            return 'N';
+            break;
+        case PieceType::BISHOP:
+            return 'B';
+            break;
+        case PieceType::ROCK:
+            return 'R';
+            break;
+        default:
+            return '0';
+            break;
+        }
+    }
 };

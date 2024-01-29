@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <GL/glew.h>
-#include "Renderer.hpp"
+
 
 struct VertexBufferElement
 {
@@ -18,7 +18,7 @@ struct VertexBufferElement
             case GL_UNSIGNED_INT  : return sizeof(GLuint);
             case GL_UNSIGNED_BYTE : return sizeof(GLbyte);
         }
-        ASSERT(false);
+        //ASSERT(false);
         return 0;
     }
 };

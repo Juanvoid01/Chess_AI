@@ -9,8 +9,13 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 include_directories(${GLEW_INCLUDE_DIRS})
 include_directories(${GLFW_INCLUDE_DIRS})
 
+include_directories(src/extern/stb_image)
+
+include_directories(res)
+
 add_executable(chess_AI 
 src/main.cpp
+src/extern/stb_image/stb_image.cpp
 src/viewer.cpp 
 src/controller.cpp 
 src/logic.cpp
@@ -20,10 +25,12 @@ src/utils/IndexBuffer.cpp
 src/utils/VertexBufferLayout.hpp
 src/utils/VertexArray.cpp
 src/utils/Shader.cpp
+src/utils/Texture.cpp
 src/objects/Piece.cpp
 src/objects/Square.cpp
 src/objects/Board.cpp
 src/objects/Move.hpp
+
 )
 
 target_compile_options(chess_AI PRIVATE -g)

@@ -4,6 +4,8 @@
 #include "utils/VertexArray.hpp"
 #include "utils/IndexBuffer.hpp"
 #include "utils/Shader.hpp"
+#include "utils/Renderer.hpp"
+#include "utils/Texture.hpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -68,13 +70,20 @@ void Viewer::run()
 
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
-
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
+        Texture texture("res/textures/board.png");
+
+        texture.Bind(); // Pass the same argument in Bind(slot) as in SetUniform1i("",slot)
+        shader.SetUniform1i("u_Texture", 0);
+
+        
         va.Unbind();
         vb.Unbind();
         ib.Unbind();
         shader.Unbind();
+
+        Renderer renderer;
 
         float r = 0.0f;
         float increment = 0.05f;
@@ -82,15 +91,12 @@ void Viewer::run()
         // Loop until the user closes the window
         while (!glfwWindowShouldClose(window))
         {
-            glClear(GL_COLOR_BUFFER_BIT);
+            renderer.Clear();
 
             shader.Bind();
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
 
-            va.Bind();
-            ib.Bind();
-
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+            renderer.Draw(va, ib, shader);
 
             if (r > 1.0f)
             {
