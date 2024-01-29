@@ -9,6 +9,8 @@
 
 ### What I learnt
 
+- cache locations of uniforms
+
 ### Implementation
 
 ### How to use it
