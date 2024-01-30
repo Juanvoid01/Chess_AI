@@ -10,6 +10,7 @@ include_directories(${GLEW_INCLUDE_DIRS})
 include_directories(${GLFW_INCLUDE_DIRS})
 
 include_directories(src/extern/stb_image)
+include_directories(src/extern/glm)
 
 include_directories(res)
 
