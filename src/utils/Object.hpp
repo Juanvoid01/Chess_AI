@@ -21,14 +21,17 @@ public:
     void SetScale(float x, float y);
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
-    
+
+    inline void SetTexture(TextureName newTexture) { textureName = newTexture; }
+
+protected:
+    float width;
+    float height;
+
 private:
     const unsigned int indices[6] = {
         0, 1, 2,
         2, 3, 0};
-
-    float width;
-    float height;
 
     VertexArray va;
     IndexBuffer ib = IndexBuffer(indices, 6);

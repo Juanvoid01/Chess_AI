@@ -56,9 +56,12 @@ Renderer::~Renderer()
 
 void Renderer::Draw(const VertexArray &va, const IndexBuffer &ib, const glm::mat4 &mvp, TextureName texture) const
 {
+    if (texture == TextureName::EMPTY)
+        return;
 
     shader.Bind();
     shader.SetUniformMat4f("u_MVP", mvp);
+
     textureManager.GetTexture(texture).Bind();
     shader.SetUniform1i("u_Texture", 0);
 

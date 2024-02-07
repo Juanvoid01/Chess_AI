@@ -49,18 +49,17 @@ void Viewer::run()
 
         Renderer renderer(windowWidth, windowHeight);
         Board board(0.0f, 0.0f, 200.0f, 200.0f, renderer);
-        Object queen(0.0f, 0.0f, 200.0f, 200.0f, TextureName::WQUEEN, renderer);
-
+        board.PutInitialPosition();
+        board.SetScale(2.0f, 2.0f);
+        //board.Translate(50.0f, 50.0f);
         // Loop until the user closes the window
 
-        double mouseX,mouseY;
+        double mouseX, mouseY;
         while (!glfwWindowShouldClose(window))
         {
             renderer.Clear();
 
             board.Render(renderer);
-            queen.Render(renderer);
-
 
             // Swap front and back buffers
             glfwSwapBuffers(window);
@@ -70,7 +69,9 @@ void Viewer::run()
 
             glfwGetCursorPos(window, &mouseX, &mouseY);
             mouseY = windowHeight - mouseY;
-            queen.SetCenter(mouseX, mouseY);
+            // board.SetPosition(mouseX,mouseY);
+            std::cout << "MouseX: " << mouseX << "  "
+                      << "MouseY: " << mouseY << '\n';
         }
     }
     // Cleanup

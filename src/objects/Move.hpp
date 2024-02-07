@@ -105,7 +105,7 @@ private:
         case PieceType::BISHOP:
             return 'B';
             break;
-        case PieceType::ROCK:
+        case PieceType::ROOK:
             return 'R';
             break;
         default:

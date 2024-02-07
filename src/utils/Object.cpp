@@ -48,12 +48,14 @@ void Object::SetScale(float x, float y)
 
 void Object::SetPosition(float x, float y)
 {
-  model = glm::translate(origin, glm::vec3(x, y, 0));
+  origin = glm::translate(origin, glm::vec3(x, y, 0));
+  model = origin;
   ReCalculateMVP();
 }
 
 void Object::SetCenter(float x, float y)
 {
-  model = glm::translate(origin, glm::vec3(x - width/2, y - height/2, 0));
+  origin = glm::translate(origin, glm::vec3(x - width / 2, y - height / 2, 0));
+  model = origin;
   ReCalculateMVP();
 }

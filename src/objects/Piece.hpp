@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Object.hpp"
+
 enum class PieceType
 {
     EMPTY = 0,
@@ -8,19 +10,28 @@ enum class PieceType
     QUEEN,
     KNIGHT,
     BISHOP,
-    ROCK
+    ROOK
 };
 
-class Piece
+enum class PieceColor
+{
+    WHITE,
+    BLACK
+};
+
+class Piece : public Object
 {
 public:
-    Piece(PieceType PieceType);
+    Piece(float posX, float posY, float width, float height, PieceType pieceType, PieceColor color, const Renderer &r);
     ~Piece();
 
-    void Render();
+    void Render(const Renderer &renderer);
 
+    void ChangePieceType(PieceType type, PieceColor color);
+    
     PieceType type;
+    PieceColor color;
 
 private:
-
+    TextureName GetTextureName(PieceType pieceType, PieceColor color);
 };

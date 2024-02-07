@@ -4,15 +4,24 @@
 class Square
 {
 public:
-    Square();
+    Square(int row, int col, float posX, float posY, float width, float height, const Renderer &r);
     ~Square();
 
-    void Render();
+    void Render(const Renderer &renderer);
 
     inline PieceType GetPiece() { return piece.type; }
+    inline PieceColor GetPieceColor() { return piece.color; }
+    inline int GetRow() const { return row; }
+    inline int GetCol() const { return col; }
+    void PutPiece(PieceType newPiece, PieceColor color = PieceColor::WHITE);
 
-    inline void PutPiece(PieceType newPiece) { piece.type = newPiece; }
+    inline void Translate(float x, float y) { piece.Translate(x, y); }
+    inline void SetScale(float x, float y) { piece.SetScale(x, y); }
+    inline void SetPosition(float x, float y) { piece.SetPosition(x, y); }
+    inline void SetCenter(float x, float y) { piece.SetCenter(x, y); }
 
 private:
     Piece piece;
+    int row;
+    int col;
 };
