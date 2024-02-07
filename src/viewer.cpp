@@ -53,9 +53,7 @@ void Viewer::run()
 
         // Loop until the user closes the window
 
-        float x = 0.0f;
-        bool up = true;
-
+        double mouseX,mouseY;
         while (!glfwWindowShouldClose(window))
         {
             renderer.Clear();
@@ -63,7 +61,6 @@ void Viewer::run()
             board.Render(renderer);
             queen.Render(renderer);
 
-            queen.Translate(x, 0.f);
 
             // Swap front and back buffers
             glfwSwapBuffers(window);
@@ -71,18 +68,9 @@ void Viewer::run()
             // Poll for and process events
             glfwPollEvents();
 
-            up ? x++ : x--;
-
-            if (x >= 20.f)
-            {
-                up = false;
-                queen.Scale(2.0f, 2.0f);
-            }
-            if (x <= -20.f)
-            {
-                up = true;
-                queen.Scale(0.5f, 0.5f);
-            }
+            glfwGetCursorPos(window, &mouseX, &mouseY);
+            mouseY = windowHeight - mouseY;
+            queen.SetCenter(mouseX, mouseY);
         }
     }
     // Cleanup
