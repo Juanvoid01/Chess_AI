@@ -95,10 +95,14 @@ void Board::SetScale(float x, float y)
 {
     Object::SetScale(x, y);
 
+    float squareWidth = GetWidth() / 8.f;
+    float squareHeight = GetHeight() / 8.f;
+
     for (int row = 0; row < 8; row++)
     {
         for (int col = 0; col < 8; col++)
         {
+            squares[row][col]->SetPosition(x + col * squareWidth, y + row * squareHeight);
             squares[row][col]->SetScale(x, y);
         }
     }
@@ -107,8 +111,8 @@ void Board::SetPosition(float x, float y)
 {
     Object::SetPosition(x, y);
 
-    float squareWidth = width / 8.f;
-    float squareHeight = height / 8.f;
+    float squareWidth = GetWidth() / 8.f;
+    float squareHeight = GetHeight() / 8.f;
 
     for (int row = 0; row < 8; row++)
     {
@@ -122,14 +126,14 @@ void Board::SetCenter(float x, float y)
 {
     Object::SetCenter(x, y);
 
-    float squareWidth = width / 8.f;
-    float squareHeight = height / 8.f;
+    float squareWidth = GetWidth() / 8.f;
+    float squareHeight = GetHeight() / 8.f;
 
     for (int row = 0; row < 8; row++)
     {
         for (int col = 0; col < 8; col++)
         {
-            squares[row][col]->SetCenter(x + col * squareWidth, y + row * squareHeight);
+            squares[row][col]->SetPosition(GetX() + col * squareWidth, GetY() + row * squareHeight);
         }
     }
 }

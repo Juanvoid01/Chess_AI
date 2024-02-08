@@ -11,8 +11,6 @@ public:
 
     void Render(const Renderer &renderer);
 
-    inline float GetWidth() const { return width; }
-    inline float GetHeight() const { return height; }
     inline const glm::mat4 &GetMVP() const { return mvp; }
 
     inline void ReCalculateMVP() { mvp = renderer.GetProjection() * renderer.GetView() * model; }
@@ -24,22 +22,39 @@ public:
 
     inline void SetTexture(TextureName newTexture) { textureName = newTexture; }
 
-protected:
-    float width;
-    float height;
+    inline float GetWidth() const { return width; }
+    inline float GetHeight() const { return height; }
+    inline float GetX() const { return x; }
+    inline float GetY() const { return y; }
 
 private:
+    float originalWidth;
+    float originalHeight;
+    float originX = 0.0f;
+    float originY = 0.0f;
+
+    float width;
+    float height;
+    float x;
+    float y;
+
     const unsigned int indices[6] = {
         0, 1, 2,
         2, 3, 0};
 
     VertexArray va;
     IndexBuffer ib = IndexBuffer(indices, 6);
-    glm::mat4 origin;
+
+    glm::vec3 positionVector;
+    glm::vec3 translationVector;
+    glm::vec3 scaleVector;
+
     glm::mat4 model;
     glm::mat4 mvp;
 
     TextureName textureName;
 
     const Renderer &renderer;
+
+    void RecalculateModel();
 };

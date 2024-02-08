@@ -51,7 +51,7 @@ void Viewer::run()
         Board board(0.0f, 0.0f, 200.0f, 200.0f, renderer);
         board.PutInitialPosition();
         board.SetScale(2.0f, 2.0f);
-        //board.Translate(50.0f, 50.0f);
+        board.Translate(50.0f, 50.0f);
         // Loop until the user closes the window
 
         double mouseX, mouseY;
@@ -69,7 +69,7 @@ void Viewer::run()
 
             glfwGetCursorPos(window, &mouseX, &mouseY);
             mouseY = windowHeight - mouseY;
-            // board.SetPosition(mouseX,mouseY);
+            board.SetCenter(mouseX,mouseY);
             std::cout << "MouseX: " << mouseX << "  "
                       << "MouseY: " << mouseY << '\n';
         }

@@ -1,16 +1,20 @@
 #include "Object.hpp"
 
 Object::Object(float posX, float posY, float width, float height, TextureName texture, const Renderer &r)
-    : width(width), height(height), textureName(texture), renderer(r)
+    : originalWidth(width), originalHeight(height), textureName(texture), renderer(r)
 {
   float positions[16] = {
-      posX, posY, 0.0f, 0.0f,
-      posX + width, posY, 1.0f, 0.0f,
-      posX + width, posY + height, 1.0f, 1.0f,
-      posX, posY + height, 0.0f, 1.0f};
+      0.0f, 0.0f, 0.0f, 0.0f,
+      width, 0.0f, 1.0f, 0.0f,
+      width, height, 1.0f, 1.0f,
+      0.0f, height, 0.0f, 1.0f};
 
-  origin = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-  model = origin;
+  positionVector = glm::vec3(posX, posY, 0);
+  translationVector = glm::vec3(0, 0, 0);
+  scaleVector = glm::vec3(1, 1, 1);
+
+  RecalculateModel();
+
   ReCalculateMVP();
 
   VertexBuffer vb(positions, 4 * 4 * sizeof(float));
@@ -36,26 +40,45 @@ void Object::Render(const Renderer &renderer)
 
 void Object::Translate(float x, float y)
 {
-  model = glm::translate(model, glm::vec3(x, y, 0));
+  translationVector.x += x;
+  translationVector.y += y;
+  RecalculateModel();
   ReCalculateMVP();
 }
 
 void Object::SetScale(float x, float y)
 {
-  model = glm::scale(origin, glm::vec3(x, y, 0));
+  scaleVector.x = x;
+  scaleVector.y = y;
+  RecalculateModel();
   ReCalculateMVP();
 }
 
 void Object::SetPosition(float x, float y)
 {
-  origin = glm::translate(origin, glm::vec3(x, y, 0));
-  model = origin;
+  positionVector = glm::vec3(x, y, 0);
+  translationVector = glm::vec3(0, 0, 0);
+  RecalculateModel();
   ReCalculateMVP();
 }
 
 void Object::SetCenter(float x, float y)
 {
-  origin = glm::translate(origin, glm::vec3(x - width / 2, y - height / 2, 0));
-  model = origin;
+  positionVector = glm::vec3(x - GetWidth() / 2.f, y - GetHeight() / 2.f, 0);
+  translationVector = glm::vec3(0, 0, 0);
+
+  RecalculateModel();
   ReCalculateMVP();
+}
+
+void Object::RecalculateModel()
+{
+  model = glm::translate(glm::mat4(1.0f), positionVector);
+  model = glm::translate(model, translationVector);
+  model = glm::scale(model, scaleVector);
+
+  width = originalWidth * scaleVector.x;
+  height = originalHeight * scaleVector.y;
+  x = positionVector.x + translationVector.x;
+  y = positionVector.y + translationVector.y;
 }
