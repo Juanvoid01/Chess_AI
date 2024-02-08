@@ -9,9 +9,9 @@ Piece::~Piece()
 {
 }
 
-void Piece::Render(const Renderer &renderer)
+void Piece::Render()
 {
-    Object::Render(renderer);
+    Object::Render();
 }
 
 void Piece::ChangePieceType(PieceType newType, PieceColor newColor)

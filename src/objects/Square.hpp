@@ -7,7 +7,7 @@ public:
     Square(int row, int col, float posX, float posY, float width, float height, const Renderer &r);
     ~Square();
 
-    void Render(const Renderer &renderer);
+    void Render();
 
     inline PieceType GetPiece() { return piece.type; }
     inline PieceColor GetPieceColor() { return piece.color; }

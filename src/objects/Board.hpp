@@ -9,7 +9,7 @@ class Board : public Object
 public:
     Board(float posX, float posY, float width, float height, const Renderer &r);
     ~Board();
-    void Render(const Renderer &renderer);
+    void Render();
     const std::vector<Move> &GetMoves(int col, int row);
 
     void Clear();

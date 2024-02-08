@@ -31,6 +31,7 @@ src/utils/VertexArray.cpp
 src/utils/Shader.cpp
 src/utils/Texture.cpp
 src/utils/TextureManager.hpp
+src/utils/EventManager.cpp
 src/objects/Piece.cpp
 src/objects/Square.cpp
 src/objects/Board.cpp

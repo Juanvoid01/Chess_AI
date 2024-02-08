@@ -33,7 +33,7 @@ Object::~Object()
 {
 }
 
-void Object::Render(const Renderer &renderer)
+void Object::Render()
 {
   renderer.Draw(va, ib, mvp, textureName);
 }

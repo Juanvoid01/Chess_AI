@@ -9,7 +9,7 @@ public:
 
     ~Object();
 
-    void Render(const Renderer &renderer);
+    void Render();
 
     inline const glm::mat4 &GetMVP() const { return mvp; }
 

@@ -25,7 +25,7 @@ public:
     Piece(float posX, float posY, float width, float height, PieceType pieceType, PieceColor color, const Renderer &r);
     ~Piece();
 
-    void Render(const Renderer &renderer);
+    void Render();
 
     void ChangePieceType(PieceType type, PieceColor color);
     

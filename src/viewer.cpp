@@ -1,10 +1,8 @@
 #include <iostream>
 
+#include "EventManager.hpp"
 #include "viewer.hpp"
 #include "Board.hpp"
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
 void Viewer::run()
 {
@@ -47,31 +45,26 @@ void Viewer::run()
         GLCall(glEnable(GL_BLEND));
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        Renderer renderer(windowWidth, windowHeight);
-        Board board(0.0f, 0.0f, 200.0f, 200.0f, renderer);
-        board.PutInitialPosition();
-        board.SetScale(2.0f, 2.0f);
-        board.Translate(50.0f, 50.0f);
+        std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight);
+        std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 200.0f, 200.0f, *renderer);
+
+        EventManager eventManager(window, renderer, board);
+
+        board->PutInitialPosition();
+
         // Loop until the user closes the window
 
-        double mouseX, mouseY;
         while (!glfwWindowShouldClose(window))
         {
-            renderer.Clear();
+            renderer->Clear();
 
-            board.Render(renderer);
+            board->Render();
 
             // Swap front and back buffers
             glfwSwapBuffers(window);
 
             // Poll for and process events
             glfwPollEvents();
-
-            glfwGetCursorPos(window, &mouseX, &mouseY);
-            mouseY = windowHeight - mouseY;
-            board.SetCenter(mouseX,mouseY);
-            std::cout << "MouseX: " << mouseX << "  "
-                      << "MouseY: " << mouseY << '\n';
         }
     }
     // Cleanup

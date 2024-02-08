@@ -20,15 +20,15 @@ Board::~Board()
 {
 }
 
-void Board::Render(const Renderer &renderer)
+void Board::Render()
 {
-    Object::Render(renderer);
+    Object::Render();
 
     for (int row = 0; row < 8; row++)
     {
         for (int col = 0; col < 8; col++)
         {
-            squares[row][col]->Render(renderer);
+            squares[row][col]->Render();
         }
     }
 }

@@ -9,9 +9,9 @@ Square::~Square()
 {
 }
 
-void Square::Render(const Renderer &renderer)
+void Square::Render()
 {
-    piece.Render(renderer);
+    piece.Render();
 }
 
 void Square::PutPiece(PieceType newPiece, PieceColor color)
