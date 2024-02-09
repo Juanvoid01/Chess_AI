@@ -20,6 +20,7 @@ public:
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
     
+    void ClickEvent(float mouseX, float mouseY);
 private:
     std::array<std::array<std::unique_ptr<Square>, 8>, 8> squares;
 };

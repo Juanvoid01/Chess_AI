@@ -26,7 +26,8 @@ void EventManager::Mouse_click_callback(GLFWwindow *window, int button, int acti
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
         ypos = renderer->GetWindowHeight() - ypos;
-        board->SetCenter(xpos, ypos);
+
+        board->ClickEvent(xpos, ypos);
     }
 }
 

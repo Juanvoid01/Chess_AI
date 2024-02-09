@@ -27,6 +27,11 @@ public:
     inline float GetX() const { return x; }
     inline float GetY() const { return y; }
 
+    inline bool PosInside(float px, float py) const
+    {
+        return px >= x && px <= x + width && py >= y && py <= y + height;
+    }
+
 private:
     float originalWidth;
     float originalHeight;

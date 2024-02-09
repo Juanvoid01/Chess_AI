@@ -137,3 +137,17 @@ void Board::SetCenter(float x, float y)
         }
     }
 }
+
+void Board::ClickEvent(float mouseX, float mouseY)
+{
+    if (PosInside(mouseX, mouseY))
+    {
+        int col = (mouseX - GetX()) / (GetWidth() / 8);
+        int row = (mouseY - GetY()) / (GetHeight() / 8);
+        if (row >= 0 && row < 8 && col >= 0 && col < 8)
+            squares[row][col]->PutPiece(PieceType::EMPTY);
+    }
+    else
+    {
+    }
+}
