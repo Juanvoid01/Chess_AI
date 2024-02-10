@@ -19,9 +19,16 @@ public:
     void SetScale(float x, float y);
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
-    
+
     void ClickEvent(float mouseX, float mouseY);
+
 private:
     std::array<std::array<std::unique_ptr<Square>, 8>, 8> squares;
-};
+    float squareWidth;
+    float squareHeight;
+    bool pieceSelected = false;
+    int rowSelected = -1;
+    int colSelected = -1;
 
+    void MovePiece(int originRow, int originCol, int finalRow, int finalCol);
+};

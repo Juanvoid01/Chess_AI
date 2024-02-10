@@ -52,6 +52,9 @@ void Viewer::run()
 
         board->PutInitialPosition();
 
+        board->SetScale(2.f, 2.f);
+        board->SetCenter(windowWidth / 2, windowHeight / 2);
+
         // Loop until the user closes the window
 
         while (!glfwWindowShouldClose(window))

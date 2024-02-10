@@ -3,8 +3,8 @@
 Board::Board(float posX, float posY, float width, float height, const Renderer &r)
     : Object(posX, posY, width, height, TextureName::BOARD, r)
 {
-    float squareWidth = width / 8.f;
-    float squareHeight = height / 8.f;
+    squareWidth = width / 8.f;
+    squareHeight = height / 8.f;
 
     for (int row = 0; row < 8; row++)
     {
@@ -39,7 +39,7 @@ void Board::Clear()
     {
         for (int col = 0; col < 8; col++)
         {
-            squares[row][col]->PutPiece(PieceType::EMPTY);
+            squares[row][col]->Clear();
         }
     }
 }
@@ -50,7 +50,7 @@ void Board::PutInitialPosition()
     {
         for (int col = 0; col < 8; col++)
         {
-            squares[row][col]->PutPiece(PieceType::EMPTY);
+            squares[row][col]->Clear();
         }
     }
 
@@ -95,8 +95,8 @@ void Board::SetScale(float x, float y)
 {
     Object::SetScale(x, y);
 
-    float squareWidth = GetWidth() / 8.f;
-    float squareHeight = GetHeight() / 8.f;
+    squareWidth = GetWidth() / 8.f;
+    squareHeight = GetHeight() / 8.f;
 
     for (int row = 0; row < 8; row++)
     {
@@ -111,9 +111,6 @@ void Board::SetPosition(float x, float y)
 {
     Object::SetPosition(x, y);
 
-    float squareWidth = GetWidth() / 8.f;
-    float squareHeight = GetHeight() / 8.f;
-
     for (int row = 0; row < 8; row++)
     {
         for (int col = 0; col < 8; col++)
@@ -126,9 +123,6 @@ void Board::SetCenter(float x, float y)
 {
     Object::SetCenter(x, y);
 
-    float squareWidth = GetWidth() / 8.f;
-    float squareHeight = GetHeight() / 8.f;
-
     for (int row = 0; row < 8; row++)
     {
         for (int col = 0; col < 8; col++)
@@ -140,14 +134,42 @@ void Board::SetCenter(float x, float y)
 
 void Board::ClickEvent(float mouseX, float mouseY)
 {
-    if (PosInside(mouseX, mouseY))
+    if (!PosInside(mouseX, mouseY))
     {
-        int col = (mouseX - GetX()) / (GetWidth() / 8);
-        int row = (mouseY - GetY()) / (GetHeight() / 8);
-        if (row >= 0 && row < 8 && col >= 0 && col < 8)
-            squares[row][col]->PutPiece(PieceType::EMPTY);
+        pieceSelected = false;
+        return;
+    }
+
+    int col = (mouseX - GetX()) / squareWidth;
+    int row = (mouseY - GetY()) / squareHeight;
+
+    if (row < 0 || row >= 8 || col < 0 || col >= 8)
+    {
+        return;
+    }
+
+    if (pieceSelected)
+    {
+        pieceSelected = false;
+
+        if (row != rowSelected || col != colSelected)
+            MovePiece(rowSelected, colSelected, row, col);
     }
     else
     {
+        if (!squares[row][col]->IsEmpty())
+        {
+            pieceSelected = true;
+            rowSelected = row;
+            colSelected = col;
+        }
     }
+}
+
+void Board::MovePiece(int originRow, int originCol, int finalRow, int finalCol)
+{
+    squares[finalRow][finalCol]->PutPiece(squares[originRow][originCol]->GetPiece(),
+                                          squares[originRow][originCol]->GetPieceColor());
+
+    squares[originRow][originCol]->Clear();
 }
