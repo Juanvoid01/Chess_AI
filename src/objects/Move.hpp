@@ -114,3 +114,9 @@ private:
         }
     }
 };
+
+struct BoardPos
+{
+    int row;
+    int col;
+};

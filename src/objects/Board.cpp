@@ -1,7 +1,7 @@
 #include "Board.hpp"
 
 Board::Board(float posX, float posY, float width, float height, const Renderer &r)
-    : Object(posX, posY, width, height, TextureName::BOARD, r)
+    : Object(r, TextureName::BOARD, posX, posY, width, height)
 {
     squareWidth = width / 8.f;
     squareHeight = height / 8.f;
@@ -14,6 +14,8 @@ Board::Board(float posX, float posY, float width, float height, const Renderer &
                 std::make_unique<Square>(row, col, posX + col * squareWidth, posY + row * squareHeight, squareWidth, squareHeight, r);
         }
     }
+
+    legalMoves.reserve(32);
 }
 
 Board::~Board()
@@ -152,14 +154,17 @@ void Board::ClickEvent(float mouseX, float mouseY)
     {
         pieceSelected = false;
 
-        if (row != rowSelected || col != colSelected)
+        if (squares[row][col]->IsSelected())
             MovePiece(rowSelected, colSelected, row, col);
+
+        UnSelectPiece();
     }
     else
     {
-        if (!squares[row][col]->IsEmpty())
+        if (!PosEmpty(row, col))
         {
             pieceSelected = true;
+            SelectPiece(row, col);
             rowSelected = row;
             colSelected = col;
         }
@@ -172,4 +177,62 @@ void Board::MovePiece(int originRow, int originCol, int finalRow, int finalCol)
                                           squares[originRow][originCol]->GetPieceColor());
 
     squares[originRow][originCol]->Clear();
+}
+
+void Board::SelectPiece(int row, int col)
+{
+    SelectPos(row, col);
+
+    GetPawnMoves(row, col, squares[row][col]->GetPieceColor());
+
+    for (BoardPos &boardPos : legalMoves)
+    {
+        SelectPos(boardPos.row, boardPos.col);
+    }
+}
+
+void Board::UnSelectPiece()
+{
+    UnSelectPos(rowSelected, colSelected);
+
+    for (BoardPos &boardPos : legalMoves)
+    {
+        UnSelectPos(boardPos.row, boardPos.col);
+    }
+    legalMoves.clear();
+}
+
+void Board::GetPawnMoves(int row, int col, PieceColor color)
+{
+    int dir = color == PieceColor::WHITE ? 1 : -1;
+
+    // advance move
+    if (ValidPos(row + dir, col) && PosEmpty(row + dir, col))
+    {
+        AddLegalMove(row + dir, col);
+    }
+
+    // diagonal captures
+    if (ValidPos(row + dir, col + 1) && !PosEmpty(row + dir, col + 1))
+    {
+        AddLegalMove(row + dir, col + 1);
+    }
+
+    if (ValidPos(row + dir, col - 1) && !PosEmpty(row + dir, col - 1))
+    {
+        AddLegalMove(row + dir, col - 1);
+    }
+
+    // special two move advance
+    dir = color == PieceColor::WHITE ? 2 : -2;
+
+    if (row == 1 && ValidPos(row + dir, col) && PosEmpty(row + dir, col))
+    {
+        AddLegalMove(row + dir, col);
+    }
+
+    if (row == 6 && ValidPos(row + dir, col) && PosEmpty(row + dir, col))
+    {
+        AddLegalMove(row + dir, col);
+    }
 }

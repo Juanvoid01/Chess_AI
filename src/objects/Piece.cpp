@@ -1,7 +1,7 @@
 #include "Piece.hpp"
 
 Piece::Piece(float posX, float posY, float width, float height, PieceType pieceType, PieceColor color, const Renderer &r)
-    : Object(posX, posY, width, height, GetTextureName(pieceType, color), r), type(pieceType), color(color)
+    : Object(r, GetTextureName(pieceType, color), posX, posY, width, height), type(pieceType), color(color)
 {
 }
 

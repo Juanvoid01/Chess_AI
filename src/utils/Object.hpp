@@ -5,7 +5,11 @@
 class Object
 {
 public:
-    Object(float posX, float posY, float width, float height, TextureName texture, const Renderer &r);
+    Object(const Renderer &r, TextureName texture,
+           float posX = 0.f, float posY = 0.f, float width = 10.f, float height = 10.f);
+
+    Object(const Renderer &r, glm::vec4 color = glm::vec4(1.f),
+           float posX = 0.f, float posY = 0.f, float width = 10.f, float height = 10.f);
 
     ~Object();
 
@@ -21,11 +25,14 @@ public:
     void SetCenter(float x, float y);
 
     inline void SetTexture(TextureName newTexture) { textureName = newTexture; }
+    inline void SetShader(ShaderName newShader) { shaderName = newShader; }
+    inline void SetColor(float r, float g, float b, float a) { color = glm::vec4(r, g, b, a); }
 
     inline float GetWidth() const { return width; }
     inline float GetHeight() const { return height; }
     inline float GetX() const { return x; }
     inline float GetY() const { return y; }
+    inline const glm::vec4 &GetColor() const { return color; }
 
     inline bool PosInside(float px, float py) const
     {
@@ -54,11 +61,13 @@ private:
     glm::vec3 translationVector;
     glm::vec3 scaleVector;
 
+    glm::vec4 color;
+
     glm::mat4 model;
     glm::mat4 mvp;
 
     TextureName textureName;
-
+    ShaderName shaderName;
     const Renderer &renderer;
 
     void RecalculateModel();

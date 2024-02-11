@@ -54,16 +54,29 @@ Renderer::~Renderer()
 {
 }
 
-void Renderer::Draw(const VertexArray &va, const IndexBuffer &ib, const glm::mat4 &mvp, TextureName texture) const
+void Renderer::Draw(const VertexArray &va, const IndexBuffer &ib, const glm::mat4 &mvp,
+                    ShaderName shader, TextureName texture, const glm::vec4 &color) const
 {
-    if (texture == TextureName::EMPTY)
-        return;
+    if (shader == ShaderName::TEXTURE)
+    {
+        if (texture == TextureName::EMPTY)
+        {
+            return;
+        }
+    }
 
-    shader.Bind();
-    shader.SetUniformMat4f("u_MVP", mvp);
+    shaderManager.GetShader(shader).Bind();
+    shaderManager.GetShader(shader).SetUniformMat4f("u_MVP", mvp);
 
-    textureManager.GetTexture(texture).Bind();
-    shader.SetUniform1i("u_Texture", 0);
+    if (shader == ShaderName::TEXTURE)
+    {
+        textureManager.GetTexture(texture).Bind();
+        shaderManager.GetShader(shader).SetUniform1i("u_Texture", 0);
+    }
+    else if (shader == ShaderName::COLOR)
+    {
+        shaderManager.GetShader(shader).SetUniform4f("u_Color", color[0], color[1], color[2], color[3]);
+    }
 
     va.Bind();
     ib.Bind();

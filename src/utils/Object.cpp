@@ -1,7 +1,38 @@
 #include "Object.hpp"
 
-Object::Object(float posX, float posY, float width, float height, TextureName texture, const Renderer &r)
-    : originalWidth(width), originalHeight(height), textureName(texture), renderer(r)
+Object::Object(const Renderer &r, TextureName texture, float posX, float posY, float width, float height)
+    : originalWidth(width), originalHeight(height), textureName(texture),
+      renderer(r), color(1.f), shaderName(ShaderName::TEXTURE)
+{
+  float positions[16] = {
+      0.0f, 0.0f, 0.0f, 0.0f,
+      width, 0.0f, 1.0f, 0.0f,
+      width, height, 1.0f, 1.0f,
+      0.0f, height, 0.0f, 1.0f};
+
+  positionVector = glm::vec3(posX, posY, 0);
+  translationVector = glm::vec3(0, 0, 0);
+  scaleVector = glm::vec3(1, 1, 1);
+
+  RecalculateModel();
+
+  ReCalculateMVP();
+
+  VertexBuffer vb(positions, 4 * 4 * sizeof(float));
+
+  VertexBufferLayout layout;
+  layout.PushFloat(2);
+  layout.PushFloat(2);
+  va.AddBuffer(vb, layout);
+
+  va.Unbind();
+  vb.Unbind();
+  ib.Unbind();
+}
+
+Object::Object(const Renderer &r, glm::vec4 color, float posX, float posY, float width, float height)
+    : originalWidth(width), originalHeight(height), textureName(TextureName::EMPTY),
+      renderer(r), color(color), shaderName(ShaderName::COLOR)
 {
   float positions[16] = {
       0.0f, 0.0f, 0.0f, 0.0f,
@@ -35,7 +66,8 @@ Object::~Object()
 
 void Object::Render()
 {
-  renderer.Draw(va, ib, mvp, textureName);
+
+  renderer.Draw(va, ib, mvp, shaderName, textureName, color);
 }
 
 void Object::Translate(float x, float y)
