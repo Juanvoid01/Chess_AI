@@ -32,6 +32,11 @@ private:
 
     std::vector<BoardPos> legalMoves;
 
+    int rowEnPassant = -1;
+    int colEnPassant = -1;
+    PieceColor colorEnPassant;
+    bool EnPassantReady = false;
+
     void MovePiece(int originRow, int originCol, int finalRow, int finalCol);
 
     void SelectPiece(int row, int col);
@@ -46,6 +51,8 @@ private:
     void GetKingMoves(int row, int col, PieceColor color);
     void GetBishopMoves(int row, int col, PieceColor color);
 
+    inline PieceType GetPType(int row, int col) const { return squares[row][col]->GetPiece(); }
+
     inline PieceColor GetPColor(int row, int col) const { return squares[row][col]->GetPieceColor(); }
 
     inline bool ValidPos(int row, int col) const { return row >= 0 && row < 8 && col >= 0 && col < 8; }
@@ -59,4 +66,9 @@ private:
     inline void AddLegalMove(int row, int col) { legalMoves.push_back({row, col}); }
 
     inline bool CapturablePos(int row, int col, PieceColor color) const { return !PosEmpty(row, col) && GetPColor(row, col) != color; }
+
+    inline bool isCaptureEnPassant(int row, int col, PieceColor color) const
+    {
+        return row == rowEnPassant && col == colEnPassant && color != colorEnPassant;
+    }
 };

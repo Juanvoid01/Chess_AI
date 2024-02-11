@@ -176,10 +176,32 @@ void Board::MovePiece(int originRow, int originCol, int finalRow, int finalCol)
     if (originRow == finalRow && originCol == finalCol)
         return;
 
-    squares[finalRow][finalCol]->PutPiece(squares[originRow][originCol]->GetPiece(),
-                                          squares[originRow][originCol]->GetPieceColor());
+    squares[finalRow][finalCol]->PutPiece(GetPType(originRow, originCol), GetPColor(originRow, originCol));
 
     squares[originRow][originCol]->Clear();
+
+    // En passant
+    if (finalRow == rowEnPassant && finalCol == colEnPassant)
+    {
+        if (GetPColor(finalRow, finalCol) == PieceColor::WHITE)
+        {
+            squares[finalRow - 1][finalCol]->Clear();
+        }
+        else
+        {
+            squares[finalRow + 1][finalCol]->Clear();
+        }
+    }
+
+    if (EnPassantReady)
+    {
+        EnPassantReady = false;
+    }
+    else
+    {
+        colEnPassant = -1;
+        rowEnPassant = -1;
+    }
 }
 
 void Board::SelectPiece(int row, int col)
@@ -244,27 +266,36 @@ void Board::GetPawnMoves(int row, int col, PieceColor color)
     }
 
     // diagonal captures
-    if (ValidPos(row + dir, col + 1) && CapturablePos(row + dir, col + 1, color))
+    if (ValidPos(row + dir, col + 1) &&
+        (CapturablePos(row + dir, col + 1, color) || isCaptureEnPassant(row + dir, col + 1, color)))
     {
         AddLegalMove(row + dir, col + 1);
     }
 
-    if (ValidPos(row + dir, col - 1) && CapturablePos(row + dir, col - 1, color))
+    if (ValidPos(row + dir, col - 1) &&
+        (CapturablePos(row + dir, col - 1, color) || isCaptureEnPassant(row + dir, col - 1, color)))
     {
         AddLegalMove(row + dir, col - 1);
     }
 
     // special two move advance
-    dir = color == PieceColor::WHITE ? 2 : -2;
 
-    if (row == 1 && ValidPos(row + dir, col) && PosEmpty(row + dir, col))
+    if (row == 1 && ValidPos(row + dir + 1, col) && PosEmpty(row + dir + 1, col))
     {
-        AddLegalMove(row + dir, col);
+        AddLegalMove(row + dir + 1, col);
+        rowEnPassant = row + dir;
+        colEnPassant = col;
+        colorEnPassant = color;
+        EnPassantReady = true;
     }
 
-    if (row == 6 && ValidPos(row + dir, col) && PosEmpty(row + dir, col))
+    if (row == 6 && ValidPos(row + dir - 1, col) && PosEmpty(row + dir - 1, col))
     {
-        AddLegalMove(row + dir, col);
+        AddLegalMove(row + dir - 1, col);
+        rowEnPassant = row + dir;
+        colEnPassant = col;
+        colorEnPassant = color;
+        EnPassantReady = true;
     }
 }
 
