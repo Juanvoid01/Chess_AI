@@ -9,8 +9,8 @@ public:
 
     void Render();
 
-    inline PieceType GetPiece() { return piece.type; }
-    inline PieceColor GetPieceColor() { return piece.color; }
+    inline PieceType GetPiece() const { return piece.type; }
+    inline PieceColor GetPieceColor() const { return piece.color; }
     inline int GetRow() const { return row; }
     inline int GetCol() const { return col; }
     void PutPiece(PieceType newPiece, PieceColor color);

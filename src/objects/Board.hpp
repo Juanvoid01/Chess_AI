@@ -37,7 +37,16 @@ private:
     void SelectPiece(int row, int col);
     void UnSelectPiece();
 
+    void GetLegalMoves(int row, int col);
+
     void GetPawnMoves(int row, int col, PieceColor color);
+    void GetKnightMoves(int row, int col, PieceColor color);
+    void GetRookMoves(int row, int col, PieceColor color);
+    void GetQueenMoves(int row, int col, PieceColor color);
+    void GetKingMoves(int row, int col, PieceColor color);
+    void GetBishopMoves(int row, int col, PieceColor color);
+
+    inline PieceColor GetPColor(int row, int col) const { return squares[row][col]->GetPieceColor(); }
 
     inline bool ValidPos(int row, int col) const { return row >= 0 && row < 8 && col >= 0 && col < 8; }
 
@@ -48,4 +57,6 @@ private:
     inline void UnSelectPos(int row, int col) { return squares[row][col]->UnSelect(); }
 
     inline void AddLegalMove(int row, int col) { legalMoves.push_back({row, col}); }
+
+    inline bool CapturablePos(int row, int col, PieceColor color) const { return !PosEmpty(row, col) && GetPColor(row, col) != color; }
 };

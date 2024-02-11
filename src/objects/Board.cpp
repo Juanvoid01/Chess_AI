@@ -173,6 +173,9 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
 void Board::MovePiece(int originRow, int originCol, int finalRow, int finalCol)
 {
+    if (originRow == finalRow && originCol == finalCol)
+        return;
+
     squares[finalRow][finalCol]->PutPiece(squares[originRow][originCol]->GetPiece(),
                                           squares[originRow][originCol]->GetPieceColor());
 
@@ -183,7 +186,7 @@ void Board::SelectPiece(int row, int col)
 {
     SelectPos(row, col);
 
-    GetPawnMoves(row, col, squares[row][col]->GetPieceColor());
+    GetLegalMoves(row, col);
 
     for (BoardPos &boardPos : legalMoves)
     {
@@ -199,7 +202,35 @@ void Board::UnSelectPiece()
     {
         UnSelectPos(boardPos.row, boardPos.col);
     }
+}
+
+void Board::GetLegalMoves(int row, int col)
+{
     legalMoves.clear();
+
+    switch (squares[row][col]->GetPiece())
+    {
+    case PieceType::PAWN:
+        GetPawnMoves(row, col, squares[row][col]->GetPieceColor());
+        break;
+    case PieceType::KNIGHT:
+        GetKnightMoves(row, col, squares[row][col]->GetPieceColor());
+        break;
+    case PieceType::KING:
+        GetKingMoves(row, col, squares[row][col]->GetPieceColor());
+        break;
+    case PieceType::QUEEN:
+        GetQueenMoves(row, col, squares[row][col]->GetPieceColor());
+        break;
+    case PieceType::ROOK:
+        GetRookMoves(row, col, squares[row][col]->GetPieceColor());
+        break;
+    case PieceType::BISHOP:
+        GetBishopMoves(row, col, squares[row][col]->GetPieceColor());
+        break;
+    default:
+        break;
+    }
 }
 
 void Board::GetPawnMoves(int row, int col, PieceColor color)
@@ -213,12 +244,12 @@ void Board::GetPawnMoves(int row, int col, PieceColor color)
     }
 
     // diagonal captures
-    if (ValidPos(row + dir, col + 1) && !PosEmpty(row + dir, col + 1))
+    if (ValidPos(row + dir, col + 1) && CapturablePos(row + dir, col + 1, color))
     {
         AddLegalMove(row + dir, col + 1);
     }
 
-    if (ValidPos(row + dir, col - 1) && !PosEmpty(row + dir, col - 1))
+    if (ValidPos(row + dir, col - 1) && CapturablePos(row + dir, col - 1, color))
     {
         AddLegalMove(row + dir, col - 1);
     }
@@ -235,4 +266,249 @@ void Board::GetPawnMoves(int row, int col, PieceColor color)
     {
         AddLegalMove(row + dir, col);
     }
+}
+
+void Board::GetRookMoves(int row, int col, PieceColor color)
+{
+
+    int aux = row + 1;
+    bool stop = false;
+    while (!stop)
+    {
+        if (ValidPos(aux, col) && PosEmpty(aux, col))
+        {
+            AddLegalMove(aux, col);
+            aux++;
+        }
+        else if (ValidPos(aux, col) && CapturablePos(aux, col, color))
+        {
+            AddLegalMove(aux, col);
+            stop = true;
+        }
+        else
+        {
+            stop = true;
+        }
+    }
+
+    aux = row - 1;
+    stop = false;
+    while (!stop)
+    {
+        if (ValidPos(aux, col) && PosEmpty(aux, col))
+        {
+            AddLegalMove(aux, col);
+            aux--;
+        }
+        else if (ValidPos(aux, col) && CapturablePos(aux, col, color))
+        {
+            AddLegalMove(aux, col);
+            stop = true;
+        }
+        else
+        {
+            stop = true;
+        }
+    }
+
+    aux = col + 1;
+    stop = false;
+    while (!stop)
+    {
+        if (ValidPos(row, aux) && PosEmpty(row, aux))
+        {
+            AddLegalMove(row, aux);
+            aux++;
+        }
+        else if (ValidPos(row, aux) && CapturablePos(row, aux, color))
+        {
+            AddLegalMove(row, aux);
+            stop = true;
+        }
+        else
+        {
+            stop = true;
+        }
+    }
+
+    aux = col - 1;
+    stop = false;
+    while (!stop)
+    {
+        if (ValidPos(row, aux) && PosEmpty(row, aux))
+        {
+            AddLegalMove(row, aux);
+            aux--;
+        }
+        else if (ValidPos(row, aux) && CapturablePos(row, aux, color))
+        {
+            AddLegalMove(row, aux);
+            stop = true;
+        }
+        else
+        {
+            stop = true;
+        }
+    }
+}
+
+void Board::GetKnightMoves(int row, int col, PieceColor color)
+{
+
+    // There are 8 knight jumps in L shape
+
+    if (ValidPos(row + 1, col + 2) &&
+        (GetPColor(row + 1, col + 2) != color || PosEmpty(row + 1, col + 2)))
+    {
+        AddLegalMove(row + 1, col + 2);
+    }
+    if (ValidPos(row + 1, col - 2) &&
+        (GetPColor(row + 1, col - 2) != color || PosEmpty(row + 1, col - 2)))
+    {
+        AddLegalMove(row + 1, col - 2);
+    }
+    if (ValidPos(row - 1, col + 2) &&
+        (GetPColor(row - 1, col + 2) != color || PosEmpty(row - 1, col + 2)))
+    {
+        AddLegalMove(row - 1, col + 2);
+    }
+    if (ValidPos(row - 1, col - 2) &&
+        (GetPColor(row - 1, col - 2) != color || PosEmpty(row - 1, col - 2)))
+    {
+        AddLegalMove(row - 1, col - 2);
+    }
+
+    if (ValidPos(row + 2, col + 1) &&
+        (GetPColor(row + 2, col + 1) != color || PosEmpty(row + 2, col + 1)))
+    {
+        AddLegalMove(row + 2, col + 1);
+    }
+    if (ValidPos(row + 2, col - 1) &&
+        (GetPColor(row + 2, col - 1) != color || PosEmpty(row + 2, col - 1)))
+    {
+        AddLegalMove(row + 2, col - 1);
+    }
+    if (ValidPos(row - 2, col + 1) &&
+        (GetPColor(row - 2, col + 1) != color || PosEmpty(row - 2, col + 1)))
+    {
+        AddLegalMove(row - 2, col + 1);
+    }
+    if (ValidPos(row - 2, col - 1) &&
+        (GetPColor(row - 2, col - 1) != color || PosEmpty(row - 2, col - 1)))
+    {
+        AddLegalMove(row - 2, col - 1);
+    }
+}
+
+void Board::GetKingMoves(int row, int col, PieceColor color)
+{
+    for (int i = -1; i <= 1; i++)
+    {
+        for (int j = -1; j <= 1; j++)
+        {
+            if ((i != 0 || j != 0) && ValidPos(row + i, col + j) &&
+                (PosEmpty(row + i, col + j) || CapturablePos(row + i, col + j, color)))
+            {
+                AddLegalMove(row + i, col + j);
+            }
+        }
+    }
+}
+
+void Board::GetBishopMoves(int row, int col, PieceColor color)
+{
+
+    int auxRow = row + 1;
+    int auxCol = col + 1;
+    bool stop = false;
+    while (!stop)
+    {
+        if (ValidPos(auxRow, auxCol) && PosEmpty(auxRow, auxCol))
+        {
+            AddLegalMove(auxRow, auxCol);
+            auxRow++;
+            auxCol++;
+        }
+        else if (ValidPos(auxRow, auxCol) && CapturablePos(auxRow, auxCol, color))
+        {
+            AddLegalMove(auxRow, auxCol);
+            stop = true;
+        }
+        else
+        {
+            stop = true;
+        }
+    }
+
+    auxRow = row - 1;
+    auxCol = col - 1;
+    stop = false;
+    while (!stop)
+    {
+        if (ValidPos(auxRow, auxCol) && PosEmpty(auxRow, auxCol))
+        {
+            AddLegalMove(auxRow, auxCol);
+            auxRow--;
+            auxCol--;
+        }
+        else if (ValidPos(auxRow, auxCol) && CapturablePos(auxRow, auxCol, color))
+        {
+            AddLegalMove(auxRow, auxCol);
+            stop = true;
+        }
+        else
+        {
+            stop = true;
+        }
+    }
+
+    auxRow = row + 1;
+    auxCol = col - 1;
+    stop = false;
+    while (!stop)
+    {
+        if (ValidPos(auxRow, auxCol) && PosEmpty(auxRow, auxCol))
+        {
+            AddLegalMove(auxRow, auxCol);
+            auxRow++;
+            auxCol--;
+        }
+        else if (ValidPos(auxRow, auxCol) && CapturablePos(auxRow, auxCol, color))
+        {
+            AddLegalMove(auxRow, auxCol);
+            stop = true;
+        }
+        else
+        {
+            stop = true;
+        }
+    }
+
+    auxRow = row - 1;
+    auxCol = col + 1;
+    stop = false;
+    while (!stop)
+    {
+        if (ValidPos(auxRow, auxCol) && PosEmpty(auxRow, auxCol))
+        {
+            AddLegalMove(auxRow, auxCol);
+            auxRow--;
+            auxCol++;
+        }
+        else if (ValidPos(auxRow, auxCol) && CapturablePos(auxRow, auxCol, color))
+        {
+            AddLegalMove(auxRow, auxCol);
+            stop = true;
+        }
+        else
+        {
+            stop = true;
+        }
+    }
+}
+
+void Board::GetQueenMoves(int row, int col, PieceColor color)
+{
+    GetRookMoves(row, col, color);
+    GetBishopMoves(row, col, color);
 }
