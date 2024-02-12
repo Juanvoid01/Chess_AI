@@ -37,6 +37,13 @@ private:
     PieceColor colorEnPassant;
     bool EnPassantReady = false;
 
+    bool kingRookMovedW = false;
+    bool queenRookMovedW = false;
+    bool kingRookMovedB = false;
+    bool queenRookMovedB = false;
+    bool whiteKingMoved = false;
+    bool blackKingMoved = false;
+
     void MovePiece(int originRow, int originCol, int finalRow, int finalCol);
 
     void SelectPiece(int row, int col);
@@ -71,4 +78,10 @@ private:
     {
         return row == rowEnPassant && col == colEnPassant && color != colorEnPassant;
     }
+
+    bool castleReady(bool shortCastle, PieceColor color) const;
+
+    void checkRooksKingsMoved(int rowPieceMoved, int colPieceMoved);
+
+    bool moveCastle(int originRow, int originCol, int finalRow, int finalCol);
 };

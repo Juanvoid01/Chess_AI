@@ -176,6 +176,11 @@ void Board::MovePiece(int originRow, int originCol, int finalRow, int finalCol)
     if (originRow == finalRow && originCol == finalCol)
         return;
 
+    if(moveCastle(originRow,originCol,finalRow,finalCol))
+        return;
+        
+    checkRooksKingsMoved(originRow, originCol);
+
     squares[finalRow][finalCol]->PutPiece(GetPType(originRow, originCol), GetPColor(originRow, originCol));
 
     squares[originRow][originCol]->Clear();
@@ -444,6 +449,30 @@ void Board::GetKingMoves(int row, int col, PieceColor color)
             }
         }
     }
+
+    if (castleReady(true, color))
+    {
+        if (color == PieceColor::WHITE)
+        {
+            AddLegalMove(0, 7);
+        }
+        else
+        {
+            AddLegalMove(7, 7);
+        }
+    }
+
+    if (castleReady(false, color))
+    {
+        if (color == PieceColor::WHITE)
+        {
+            AddLegalMove(0, 0);
+        }
+        else
+        {
+            AddLegalMove(7, 0);
+        }
+    }
 }
 
 void Board::GetBishopMoves(int row, int col, PieceColor color)
@@ -542,4 +571,162 @@ void Board::GetQueenMoves(int row, int col, PieceColor color)
 {
     GetRookMoves(row, col, color);
     GetBishopMoves(row, col, color);
+}
+
+void Board::checkRooksKingsMoved(int rowPieceMoved, int colPieceMoved)
+{
+    int row = rowPieceMoved;
+    int col = colPieceMoved;
+
+    if (GetPType(row, col) != PieceType::ROOK && GetPType(row, col) != PieceType::KING)
+        return;
+
+    if (GetPType(row, col) == PieceType::KING)
+    {
+        if (GetPColor(row, col) == PieceColor::WHITE)
+        {
+            if (!whiteKingMoved)
+            {
+                whiteKingMoved = true;
+            }
+        }
+        else
+        {
+            if (!blackKingMoved)
+            {
+                blackKingMoved = true;
+            }
+        }
+        return;
+    }
+
+    if (GetPColor(row, col) == PieceColor::WHITE)
+    {
+        if (!queenRookMovedW && row == 0 && col == 0)
+        {
+            queenRookMovedW = true;
+        }
+
+        if (!kingRookMovedW && row == 0 && col == 7)
+        {
+            kingRookMovedW = true;
+        }
+    }
+    else
+    {
+        if (!queenRookMovedB && row == 7 && col == 0)
+        {
+            queenRookMovedB = true;
+        }
+
+        if (!kingRookMovedB && row == 7 && col == 7)
+        {
+            kingRookMovedB = true;
+        }
+    }
+}
+
+bool Board::castleReady(bool shortCastle, PieceColor color) const
+{
+    if (color == PieceColor::WHITE && whiteKingMoved)
+    {
+        return false;
+    }
+
+    if (color == PieceColor::BLACK && blackKingMoved)
+    {
+        return false;
+    }
+
+    if (color == PieceColor::WHITE)
+    {
+        if (!shortCastle)
+        {
+            return !queenRookMovedW && PosEmpty(0, 1) && PosEmpty(0, 2) && PosEmpty(0, 3);
+        }
+        else
+        {
+            return !kingRookMovedW && PosEmpty(0, 6) && PosEmpty(0, 5);
+        }
+    }
+    else
+    {
+        if (!shortCastle)
+        {
+            return !queenRookMovedB && PosEmpty(7, 1) && PosEmpty(7, 2) && PosEmpty(7, 3);
+        }
+        else
+        {
+            return !kingRookMovedB && PosEmpty(7, 6) && PosEmpty(7, 5);
+        }
+    }
+}
+
+bool Board::moveCastle(int originRow, int originCol, int finalRow, int finalCol)
+{
+    // return if the movement is a castle move
+
+    bool castleMove = false;
+
+    if (GetPType(originRow, originCol) == PieceType::KING)
+    {
+        if (GetPColor(originRow, originCol) == PieceColor::WHITE)
+        {
+            if (!whiteKingMoved && finalRow == 0)
+            {
+                if (finalCol == 7) // shortCastle white
+                {
+                    squares[0][6]->PutPiece(PieceType::KING, PieceColor::WHITE);
+                    squares[0][5]->PutPiece(PieceType::ROOK, PieceColor::WHITE);
+                    squares[0][7]->Clear();
+                    squares[originRow][originCol]->Clear();
+
+                    kingRookMovedW = true;
+                    whiteKingMoved = true;
+                    castleMove = true;
+                }
+                else if (finalCol == 0) // longCastle white
+                {
+                    squares[0][2]->PutPiece(PieceType::KING, PieceColor::WHITE);
+                    squares[0][3]->PutPiece(PieceType::ROOK, PieceColor::WHITE);
+                    squares[0][0]->Clear();
+                    squares[originRow][originCol]->Clear();
+
+                    queenRookMovedW = true;
+                    whiteKingMoved = true;
+                    castleMove = true;
+                }
+            }
+        }
+        else
+        {
+            if (!blackKingMoved && finalRow == 7)
+            {
+                if (finalCol == 7) // shortCastle black
+                {
+                    squares[7][6]->PutPiece(PieceType::KING, PieceColor::BLACK);
+                    squares[7][5]->PutPiece(PieceType::ROOK, PieceColor::BLACK);
+                    squares[7][7]->Clear();
+                    squares[originRow][originCol]->Clear();
+
+                    kingRookMovedB = true;
+                    blackKingMoved = true;
+                    castleMove = true;
+                }
+                else if (finalCol == 0) // longCastle black
+                {
+                    squares[7][2]->PutPiece(PieceType::KING, PieceColor::BLACK);
+                    squares[7][3]->PutPiece(PieceType::ROOK, PieceColor::BLACK);
+                    squares[7][0]->Clear();
+                    squares[originRow][originCol]->Clear();
+
+                    queenRookMovedB = true;
+                    blackKingMoved = true;
+                    castleMove = true;
+                }
+            }
+        }
+    }
+
+    return castleMove;
 }
