@@ -105,87 +105,117 @@ void ChessEngine::UpdatePawnDangers(int row, int col, PieceColor color)
 {
     short dir = color == PieceColor::WHITE ? 1 : -1;
 
-    if (ValidPos(row + dir, col + 1))
+    short nextRow = row + dir;
+
+    if (ValidPos(nextRow, col + 1))
     {
-        SetkingAttackedSquare(row + dir, col + 1, true);
-        SetkingDangerSquare(row + dir, col + 1, true);
+        SetAttackedSquare(nextRow, col + 1, true);
+        SetkingDangerSquare(nextRow, col + 1, true);
     }
 
-    if (ValidPos(row + dir, col - 1))
+    if (ValidPos(nextRow, col - 1))
     {
-        SetkingAttackedSquare(row + dir, col - 1, true);
-        SetkingDangerSquare(row + dir, col - 1, true);
+        SetAttackedSquare(nextRow, col - 1, true);
+        SetkingDangerSquare(nextRow, col - 1, true);
     }
 }
 
 void ChessEngine::UpdateRookDangers(int row, int col, PieceColor color)
 {
     bool attack = true;
+    bool danger = true;
 
     for (int i = row + 1; i < 8; i++)
     {
         if (attack)
-        {
-            SetkingAttackedSquare(i, col, true);
-        }
+            SetAttackedSquare(i, col, true);
 
-        SetkingDangerSquare(i, col, true);
+        if (danger)
+            SetkingDangerSquare(i, col, true);
 
-        if (attack && !PosEmpty(i, col))
+        if (!PosEmpty(i, col))
         {
             attack = false;
+            if (!isEnemyKing(i, col, color))
+            {
+                danger = false;
+            }
         }
+
+        if (!attack && !danger)
+            break;
     }
 
     attack = true;
+    danger = true;
 
     for (int i = row - 1; i >= 0; i--)
     {
         if (attack)
-        {
-            SetkingAttackedSquare(i, col, true);
-        }
+            SetAttackedSquare(i, col, true);
 
-        SetkingDangerSquare(i, col, true);
+        if (danger)
+            SetkingDangerSquare(i, col, true);
 
-        if (attack && !PosEmpty(i, col))
+        if (!PosEmpty(i, col))
         {
             attack = false;
+            if (!isEnemyKing(i, col, color))
+            {
+                danger = false;
+            }
         }
+
+        if (!attack && !danger)
+            break;
     }
 
     attack = true;
+    danger = true;
 
     for (int i = col + 1; i < 8; i++)
     {
         if (attack)
-        {
-            SetkingAttackedSquare(row, i, true);
-        }
+            SetAttackedSquare(row, i, true);
 
-        SetkingDangerSquare(row, i, true);
+        if (danger)
+            SetkingDangerSquare(row, i, true);
 
-        if (attack && !PosEmpty(row, i))
+        if (!PosEmpty(i, col))
         {
             attack = false;
+            if (!isEnemyKing(row, i, color))
+            {
+                danger = false;
+            }
         }
+
+        if (!attack && !danger)
+            break;
     }
 
     attack = true;
+    danger = true;
 
     for (int i = col - 1; i >= 0; i--)
     {
         if (attack)
-        {
-            SetkingAttackedSquare(row, i, true);
-        }
+            SetAttackedSquare(row, i, true);
 
-        SetkingDangerSquare(row, i, true);
+        if (danger)
+            SetkingDangerSquare(row, i, true);
 
-        if (attack && !PosEmpty(row, i))
+        if (!PosEmpty(i, col))
         {
             attack = false;
+            if (!isEnemyKing(row, i, color))
+            {
+                danger = false;
+            }
         }
+
+        if (!attack && !danger)
+            break;
     }
 }
 
@@ -193,43 +223,43 @@ void ChessEngine::UpdateKnightDangers(int row, int col, PieceColor color)
 {
     if (ValidPos(row + 1, col + 2))
     {
-        SetkingAttackedSquare(row + 1, col + 2, true);
+        SetAttackedSquare(row + 1, col + 2, true);
         SetkingDangerSquare(row + 1, col + 2, true);
     }
     if (ValidPos(row + 1, col - 2))
     {
-        SetkingAttackedSquare(row + 1, col - 2, true);
+        SetAttackedSquare(row + 1, col - 2, true);
         SetkingDangerSquare(row + 1, col - 2, true);
     }
     if (ValidPos(row - 1, col + 2))
     {
-        SetkingAttackedSquare(row - 1, col + 2, true);
+        SetAttackedSquare(row - 1, col + 2, true);
         SetkingDangerSquare(row - 1, col + 2, true);
     }
     if (ValidPos(row - 1, col - 2))
     {
-        SetkingAttackedSquare(row - 1, col - 2, true);
+        SetAttackedSquare(row - 1, col - 2, true);
         SetkingDangerSquare(row - 1, col - 2, true);
     }
 
     if (ValidPos(row + 2, col + 1))
     {
-        SetkingAttackedSquare(row + 2, col + 1, true);
+        SetAttackedSquare(row + 2, col + 1, true);
         SetkingDangerSquare(row + 2, col + 1, true);
     }
     if (ValidPos(row + 2, col - 1))
     {
-        SetkingAttackedSquare(row + 2, col - 1, true);
+        SetAttackedSquare(row + 2, col - 1, true);
         SetkingDangerSquare(row + 2, col - 1, true);
     }
     if (ValidPos(row - 2, col + 1))
     {
-        SetkingAttackedSquare(row - 2, col + 1, true);
+        SetAttackedSquare(row - 2, col + 1, true);
         SetkingDangerSquare(row - 2, col + 1, true);
     }
     if (ValidPos(row - 2, col - 1))
     {
-        SetkingAttackedSquare(row - 2, col - 1, true);
+        SetAttackedSquare(row - 2, col - 1, true);
         SetkingDangerSquare(row - 2, col - 1, true);
     }
 }
@@ -246,7 +276,7 @@ void ChessEngine::UpdateKingDangers(int row, int col, PieceColor color)
             destCol = col + j;
             if ((i != 0 || j != 0) && ValidPos(destRow, destCol))
             {
-                SetkingAttackedSquare(destRow, destCol, true);
+                SetAttackedSquare(destRow, destCol, true);
                 SetkingDangerSquare(destRow, destCol, true);
             }
         }
@@ -262,7 +292,7 @@ void ChessEngine::UpdateBishopDangers(int row, int col, PieceColor color)
     {
         if (attack)
         {
-            SetkingAttackedSquare(i, j, true);
+            SetAttackedSquare(i, j, true);
         }
 
         SetkingDangerSquare(i, j, true);
@@ -281,7 +311,7 @@ void ChessEngine::UpdateBishopDangers(int row, int col, PieceColor color)
     {
         if (attack)
         {
-            SetkingAttackedSquare(i, j, true);
+            SetAttackedSquare(i, j, true);
         }
 
         SetkingDangerSquare(i, j, true);
@@ -300,7 +330,7 @@ void ChessEngine::UpdateBishopDangers(int row, int col, PieceColor color)
     {
         if (attack)
         {
-            SetkingAttackedSquare(i, j, true);
+            SetAttackedSquare(i, j, true);
         }
 
         SetkingDangerSquare(i, j, true);
@@ -319,7 +349,7 @@ void ChessEngine::UpdateBishopDangers(int row, int col, PieceColor color)
     {
         if (attack)
         {
-            SetkingAttackedSquare(i, j, true);
+            SetAttackedSquare(i, j, true);
         }
 
         SetkingDangerSquare(i, j, true);
@@ -342,7 +372,7 @@ void ChessEngine::UpdateQueenDangers(int row, int col, PieceColor color)
 void ChessEngine::updateLegalMoves()
 {
     legalMoves.clear();
-    kingAttackedSquares.reset();
+    attackedSquares.reset();
     kingDangerSquares.reset();
 
     updateDangers();
@@ -354,8 +384,7 @@ void ChessEngine::updateLegalMoves()
             if (PosEmpty(row, col) || pieces[row][col].color != turn)
                 continue;
 
-            UpdateKingMoves(row, col, pieces[row][col].color);
-            /*switch (pieces[row][col].type)
+            switch (pieces[row][col].type)
             {
             case PieceType::PAWN:
                 UpdatePawnMoves(row, col, pieces[row][col].color);
@@ -377,20 +406,252 @@ void ChessEngine::updateLegalMoves()
                 break;
             default:
                 break;
-            }*/
+            }
         }
     }
 }
 
 void ChessEngine::UpdatePawnMoves(int row, int col, PieceColor color)
 {
+    short dir = color == PieceColor::WHITE ? +1 : -1;
+    short startRow = color == PieceColor::WHITE ? 1 : 6;
+    short prePromotionRow = color == PieceColor::WHITE ? 6 : 1;
+    short enPassantRow = color == PieceColor::WHITE ? 5 : 4;
+
+    short nextRow = row + dir;
+    // pawn push
+    if (ValidPos(nextRow, col) && PosEmpty(nextRow, col) && row != prePromotionRow)
+    {
+        legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::QUIET));
+    }
+
+    // diagonal captures
+    if (ValidPos(nextRow, col + 1) && CapturablePos(nextRow, col + 1, color))
+    {
+        legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::CAPTURE));
+    }
+
+    if (ValidPos(nextRow, col - 1) && CapturablePos(nextRow, col - 1, color))
+    {
+        legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::CAPTURE));
+    }
+
+    if (row == startRow)
+    {
+
+        if (PosEmpty(nextRow, col) && PosEmpty(nextRow + dir, col))
+        {
+            legalMoves.emplace_back(Move(row, col, nextRow + dir, col, MoveType::DOUBLEPAWNPUSH));
+        }
+    }
+    else if (row == prePromotionRow)
+    {
+        if (PosEmpty(nextRow, col))
+        {
+            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::QUEENPROMOTION));
+            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::ROOKPROMOTION));
+            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::BISHOPPROMOTION));
+            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::KNIGHTPROMOTION));
+        }
+
+        // diagonal captures while promotion
+        if (ValidPos(nextRow, col + 1) && CapturablePos(nextRow, col + 1, color))
+        {
+            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::QUEENPROMOTION));
+            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::ROOKPROMOTION));
+            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::BISHOPPROMOTION));
+            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::KNIGHTPROMOTION));
+        }
+
+        if (ValidPos(nextRow, col - 1) && CapturablePos(nextRow, col - 1, color))
+        {
+            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::QUEENPROMOCAPTURE));
+            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::ROOKPROMOCAPTURE));
+            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::BISHOPPROMOCAPTURE));
+            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::KNIGHTPROMOCAPTURE));
+        }
+    }
+    else if (row == enPassantRow)
+    {
+    }
 }
+
 void ChessEngine::UpdateKnightMoves(int row, int col, PieceColor color)
 {
+    int destRow = row + 1, destCol = col + 2;
+
+    if (ValidPos(destRow, destCol))
+    {
+        if (PosEmpty(destRow, destCol))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+        }
+        else if (CapturablePos(destRow, destCol, color))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+        }
+    }
+
+    destRow = row + 1, destCol = col - 2;
+    if (ValidPos(destRow, destCol))
+    {
+        if (PosEmpty(destRow, destCol))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+        }
+        else if (CapturablePos(destRow, destCol, color))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+        }
+    }
+
+    destRow = row - 1, destCol = col + 2;
+    if (ValidPos(destRow, destCol))
+    {
+        if (PosEmpty(destRow, destCol))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+        }
+        else if (CapturablePos(destRow, destCol, color))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+        }
+    }
+
+    destRow = row - 1, destCol = col - 2;
+    if (ValidPos(destRow, destCol))
+    {
+        if (PosEmpty(destRow, destCol))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+        }
+        else if (CapturablePos(destRow, destCol, color))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+        }
+    }
+
+    destRow = row + 2, destCol = col + 1;
+    if (ValidPos(destRow, destCol))
+    {
+        if (PosEmpty(destRow, destCol))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+        }
+        else if (CapturablePos(destRow, destCol, color))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+        }
+    }
+
+    destRow = row + 2, destCol = col - 1;
+    if (ValidPos(destRow, destCol))
+    {
+        if (PosEmpty(destRow, destCol))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+        }
+        else if (CapturablePos(destRow, destCol, color))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+        }
+    }
+
+    destRow = row - 2, destCol = col + 1;
+    if (ValidPos(destRow, destCol))
+    {
+        if (PosEmpty(destRow, destCol))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+        }
+        else if (CapturablePos(destRow, destCol, color))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+        }
+    }
+
+    destRow = row - 2, destCol = col - 1;
+    if (ValidPos(destRow, destCol))
+    {
+        if (PosEmpty(destRow, destCol))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+        }
+        else if (CapturablePos(destRow, destCol, color))
+        {
+            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+        }
+    }
 }
+
 void ChessEngine::UpdateRookMoves(int row, int col, PieceColor color)
 {
+
+    for (int i = row + 1; i < 8; i++)
+    {
+        if (PosEmpty(i, col))
+        {
+            legalMoves.emplace_back(Move(row, col, i, col, MoveType::QUIET));
+        }
+        else
+        {
+            if (CapturablePos(i, col, color))
+            {
+                legalMoves.emplace_back(Move(row, col, i, col, MoveType::CAPTURE));
+            }
+            break;
+        }
+    }
+
+    for (int i = row - 1; i >= 0; i--)
+    {
+        if (PosEmpty(i, col))
+        {
+            legalMoves.emplace_back(Move(row, col, i, col, MoveType::QUIET));
+        }
+        else
+        {
+            if (CapturablePos(i, col, color))
+            {
+                legalMoves.emplace_back(Move(row, col, i, col, MoveType::CAPTURE));
+            }
+            break;
+        }
+    }
+
+    for (int i = col + 1; i < 8; i++)
+    {
+        if (PosEmpty(row, i))
+        {
+            legalMoves.emplace_back(Move(row, col, row, i, MoveType::QUIET));
+        }
+        else
+        {
+            if (CapturablePos(row, i, color))
+            {
+                legalMoves.emplace_back(Move(row, col, row, i, MoveType::CAPTURE));
+            }
+            break;
+        }
+    }
+
+    for (int i = col - 1; i >= 0; i--)
+    {
+        if (PosEmpty(row, i))
+        {
+            legalMoves.emplace_back(Move(row, col, row, i, MoveType::QUIET));
+        }
+        else
+        {
+            if (CapturablePos(row, i, color))
+            {
+                legalMoves.emplace_back(Move(row, col, row, i, MoveType::CAPTURE));
+            }
+            break;
+        }
+    }
 }
+
 void ChessEngine::UpdateKingMoves(int row, int col, PieceColor color)
 {
     int destRow = 0, destCol = 0;
@@ -404,7 +665,7 @@ void ChessEngine::UpdateKingMoves(int row, int col, PieceColor color)
             destRow = row + i;
             destCol = col + j;
 
-            if (ValidPos(destRow, destCol) && !GetkingAttackedSquare(destRow, destCol))
+            if (ValidPos(destRow, destCol) && !GetkingDangerSquare(destRow, destCol))
             {
 
                 if (PosEmpty(destRow, destCol))
@@ -419,9 +680,101 @@ void ChessEngine::UpdateKingMoves(int row, int col, PieceColor color)
         }
     }
 }
+
 void ChessEngine::UpdateBishopMoves(int row, int col, PieceColor color)
 {
+
+    int i = row + 1, j = col + 1;
+    while (i < 8 && j < 8)
+    {
+        if (!ValidPos(i, j))
+            break;
+
+        if (PosEmpty(i, j))
+        {
+            legalMoves.emplace_back(Move(row, col, i, j, MoveType::QUIET));
+        }
+        else
+        {
+            if (CapturablePos(i, j, color))
+            {
+                legalMoves.emplace_back(Move(row, col, i, j, MoveType::CAPTURE));
+            }
+            break;
+        }
+        i++;
+        j++;
+    }
+
+    i = row - 1, j = col - 1;
+    while (i >= 0 && j >= 0)
+    {
+        if (!ValidPos(i, j))
+            break;
+
+        if (PosEmpty(i, j))
+        {
+            legalMoves.emplace_back(Move(row, col, i, j, MoveType::QUIET));
+        }
+        else
+        {
+            if (CapturablePos(i, j, color))
+            {
+                legalMoves.emplace_back(Move(row, col, i, j, MoveType::CAPTURE));
+            }
+            break;
+        }
+        i--;
+        j--;
+    }
+
+    i = row + 1, j = col - 1;
+    while (i < 8 && j >= 0)
+    {
+        if (!ValidPos(i, j))
+            break;
+
+        if (PosEmpty(i, j))
+        {
+            legalMoves.emplace_back(Move(row, col, i, j, MoveType::QUIET));
+        }
+        else
+        {
+            if (CapturablePos(i, j, color))
+            {
+                legalMoves.emplace_back(Move(row, col, i, j, MoveType::CAPTURE));
+            }
+            break;
+        }
+        i++;
+        j--;
+    }
+
+    i = row - 1, j = col + 1;
+    while (i >= 0 && j < 8)
+    {
+        if (!ValidPos(i, j))
+            break;
+
+        if (PosEmpty(i, j))
+        {
+            legalMoves.emplace_back(Move(row, col, i, j, MoveType::QUIET));
+        }
+        else
+        {
+            if (CapturablePos(i, j, color))
+            {
+                legalMoves.emplace_back(Move(row, col, i, j, MoveType::CAPTURE));
+            }
+            break;
+        }
+        i--;
+        j++;
+    }
 }
+
 void ChessEngine::UpdateQueenMoves(int row, int col, PieceColor color)
 {
+    UpdateRookMoves(row, col, color);
+    UpdateBishopMoves(row, col, color);
 }
