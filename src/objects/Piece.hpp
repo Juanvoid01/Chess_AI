@@ -1,23 +1,9 @@
 #pragma once
 
 #include "Object.hpp"
+#include "PieceType.hpp"
 
-enum class PieceType
-{
-    EMPTY = 0,
-    PAWN,
-    KING,
-    QUEEN,
-    KNIGHT,
-    BISHOP,
-    ROOK
-};
 
-enum class PieceColor
-{
-    WHITE,
-    BLACK
-};
 
 class Piece : public Object
 {

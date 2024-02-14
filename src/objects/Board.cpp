@@ -14,8 +14,6 @@ Board::Board(float posX, float posY, float width, float height, const Renderer &
                 std::make_unique<Square>(row, col, posX + col * squareWidth, posY + row * squareHeight, squareWidth, squareHeight, r);
         }
     }
-
-    legalMoves.reserve(32);
 }
 
 Board::~Board()
@@ -155,578 +153,61 @@ void Board::ClickEvent(float mouseX, float mouseY)
         pieceSelected = false;
 
         if (squares[row][col]->IsSelected())
-            MovePiece(rowSelected, colSelected, row, col);
+        {
 
-        UnSelectPiece();
+            for (Move move : chessEngine.GetLegalMoves())
+            {
+                if (move.endRow == row && move.endCol == col &&
+                    move.iniRow == rowSelected && move.iniCol == colSelected)
+                {
+                    MovePiece(move);
+                    break;
+                }
+            }
+        }
+
+        UnSelectBoard();
     }
     else
     {
         if (!PosEmpty(row, col))
         {
             pieceSelected = true;
-            SelectPiece(row, col);
+            SelectPos(row, col);
             rowSelected = row;
             colSelected = col;
-        }
-    }
-}
 
-void Board::MovePiece(int originRow, int originCol, int finalRow, int finalCol)
-{
-    if (originRow == finalRow && originCol == finalCol)
-        return;
-
-    if(moveCastle(originRow,originCol,finalRow,finalCol))
-        return;
-        
-    checkRooksKingsMoved(originRow, originCol);
-
-    squares[finalRow][finalCol]->PutPiece(GetPType(originRow, originCol), GetPColor(originRow, originCol));
-
-    squares[originRow][originCol]->Clear();
-
-    // En passant
-    if (finalRow == rowEnPassant && finalCol == colEnPassant)
-    {
-        if (GetPColor(finalRow, finalCol) == PieceColor::WHITE)
-        {
-            squares[finalRow - 1][finalCol]->Clear();
-        }
-        else
-        {
-            squares[finalRow + 1][finalCol]->Clear();
-        }
-    }
-
-    if (EnPassantReady)
-    {
-        EnPassantReady = false;
-    }
-    else
-    {
-        colEnPassant = -1;
-        rowEnPassant = -1;
-    }
-}
-
-void Board::SelectPiece(int row, int col)
-{
-    SelectPos(row, col);
-
-    GetLegalMoves(row, col);
-
-    for (BoardPos &boardPos : legalMoves)
-    {
-        SelectPos(boardPos.row, boardPos.col);
-    }
-}
-
-void Board::UnSelectPiece()
-{
-    UnSelectPos(rowSelected, colSelected);
-
-    for (BoardPos &boardPos : legalMoves)
-    {
-        UnSelectPos(boardPos.row, boardPos.col);
-    }
-}
-
-void Board::GetLegalMoves(int row, int col)
-{
-    legalMoves.clear();
-
-    switch (squares[row][col]->GetPiece())
-    {
-    case PieceType::PAWN:
-        GetPawnMoves(row, col, squares[row][col]->GetPieceColor());
-        break;
-    case PieceType::KNIGHT:
-        GetKnightMoves(row, col, squares[row][col]->GetPieceColor());
-        break;
-    case PieceType::KING:
-        GetKingMoves(row, col, squares[row][col]->GetPieceColor());
-        break;
-    case PieceType::QUEEN:
-        GetQueenMoves(row, col, squares[row][col]->GetPieceColor());
-        break;
-    case PieceType::ROOK:
-        GetRookMoves(row, col, squares[row][col]->GetPieceColor());
-        break;
-    case PieceType::BISHOP:
-        GetBishopMoves(row, col, squares[row][col]->GetPieceColor());
-        break;
-    default:
-        break;
-    }
-}
-
-void Board::GetPawnMoves(int row, int col, PieceColor color)
-{
-    int dir = color == PieceColor::WHITE ? 1 : -1;
-
-    // advance move
-    if (ValidPos(row + dir, col) && PosEmpty(row + dir, col))
-    {
-        AddLegalMove(row + dir, col);
-    }
-
-    // diagonal captures
-    if (ValidPos(row + dir, col + 1) &&
-        (CapturablePos(row + dir, col + 1, color) || isCaptureEnPassant(row + dir, col + 1, color)))
-    {
-        AddLegalMove(row + dir, col + 1);
-    }
-
-    if (ValidPos(row + dir, col - 1) &&
-        (CapturablePos(row + dir, col - 1, color) || isCaptureEnPassant(row + dir, col - 1, color)))
-    {
-        AddLegalMove(row + dir, col - 1);
-    }
-
-    // special two move advance
-
-    if (row == 1 && ValidPos(row + dir + 1, col) && PosEmpty(row + dir + 1, col))
-    {
-        AddLegalMove(row + dir + 1, col);
-        rowEnPassant = row + dir;
-        colEnPassant = col;
-        colorEnPassant = color;
-        EnPassantReady = true;
-    }
-
-    if (row == 6 && ValidPos(row + dir - 1, col) && PosEmpty(row + dir - 1, col))
-    {
-        AddLegalMove(row + dir - 1, col);
-        rowEnPassant = row + dir;
-        colEnPassant = col;
-        colorEnPassant = color;
-        EnPassantReady = true;
-    }
-}
-
-void Board::GetRookMoves(int row, int col, PieceColor color)
-{
-
-    int aux = row + 1;
-    bool stop = false;
-    while (!stop)
-    {
-        if (ValidPos(aux, col) && PosEmpty(aux, col))
-        {
-            AddLegalMove(aux, col);
-            aux++;
-        }
-        else if (ValidPos(aux, col) && CapturablePos(aux, col, color))
-        {
-            AddLegalMove(aux, col);
-            stop = true;
-        }
-        else
-        {
-            stop = true;
-        }
-    }
-
-    aux = row - 1;
-    stop = false;
-    while (!stop)
-    {
-        if (ValidPos(aux, col) && PosEmpty(aux, col))
-        {
-            AddLegalMove(aux, col);
-            aux--;
-        }
-        else if (ValidPos(aux, col) && CapturablePos(aux, col, color))
-        {
-            AddLegalMove(aux, col);
-            stop = true;
-        }
-        else
-        {
-            stop = true;
-        }
-    }
-
-    aux = col + 1;
-    stop = false;
-    while (!stop)
-    {
-        if (ValidPos(row, aux) && PosEmpty(row, aux))
-        {
-            AddLegalMove(row, aux);
-            aux++;
-        }
-        else if (ValidPos(row, aux) && CapturablePos(row, aux, color))
-        {
-            AddLegalMove(row, aux);
-            stop = true;
-        }
-        else
-        {
-            stop = true;
-        }
-    }
-
-    aux = col - 1;
-    stop = false;
-    while (!stop)
-    {
-        if (ValidPos(row, aux) && PosEmpty(row, aux))
-        {
-            AddLegalMove(row, aux);
-            aux--;
-        }
-        else if (ValidPos(row, aux) && CapturablePos(row, aux, color))
-        {
-            AddLegalMove(row, aux);
-            stop = true;
-        }
-        else
-        {
-            stop = true;
-        }
-    }
-}
-
-void Board::GetKnightMoves(int row, int col, PieceColor color)
-{
-
-    // There are 8 knight jumps in L shape
-
-    if (ValidPos(row + 1, col + 2) &&
-        (GetPColor(row + 1, col + 2) != color || PosEmpty(row + 1, col + 2)))
-    {
-        AddLegalMove(row + 1, col + 2);
-    }
-    if (ValidPos(row + 1, col - 2) &&
-        (GetPColor(row + 1, col - 2) != color || PosEmpty(row + 1, col - 2)))
-    {
-        AddLegalMove(row + 1, col - 2);
-    }
-    if (ValidPos(row - 1, col + 2) &&
-        (GetPColor(row - 1, col + 2) != color || PosEmpty(row - 1, col + 2)))
-    {
-        AddLegalMove(row - 1, col + 2);
-    }
-    if (ValidPos(row - 1, col - 2) &&
-        (GetPColor(row - 1, col - 2) != color || PosEmpty(row - 1, col - 2)))
-    {
-        AddLegalMove(row - 1, col - 2);
-    }
-
-    if (ValidPos(row + 2, col + 1) &&
-        (GetPColor(row + 2, col + 1) != color || PosEmpty(row + 2, col + 1)))
-    {
-        AddLegalMove(row + 2, col + 1);
-    }
-    if (ValidPos(row + 2, col - 1) &&
-        (GetPColor(row + 2, col - 1) != color || PosEmpty(row + 2, col - 1)))
-    {
-        AddLegalMove(row + 2, col - 1);
-    }
-    if (ValidPos(row - 2, col + 1) &&
-        (GetPColor(row - 2, col + 1) != color || PosEmpty(row - 2, col + 1)))
-    {
-        AddLegalMove(row - 2, col + 1);
-    }
-    if (ValidPos(row - 2, col - 1) &&
-        (GetPColor(row - 2, col - 1) != color || PosEmpty(row - 2, col - 1)))
-    {
-        AddLegalMove(row - 2, col - 1);
-    }
-}
-
-void Board::GetKingMoves(int row, int col, PieceColor color)
-{
-    for (int i = -1; i <= 1; i++)
-    {
-        for (int j = -1; j <= 1; j++)
-        {
-            if ((i != 0 || j != 0) && ValidPos(row + i, col + j) &&
-                (PosEmpty(row + i, col + j) || CapturablePos(row + i, col + j, color)))
+            for (Move move : chessEngine.GetLegalMoves())
             {
-                AddLegalMove(row + i, col + j);
-            }
-        }
-    }
-
-    if (castleReady(true, color))
-    {
-        if (color == PieceColor::WHITE)
-        {
-            AddLegalMove(0, 7);
-        }
-        else
-        {
-            AddLegalMove(7, 7);
-        }
-    }
-
-    if (castleReady(false, color))
-    {
-        if (color == PieceColor::WHITE)
-        {
-            AddLegalMove(0, 0);
-        }
-        else
-        {
-            AddLegalMove(7, 0);
-        }
-    }
-}
-
-void Board::GetBishopMoves(int row, int col, PieceColor color)
-{
-
-    int auxRow = row + 1;
-    int auxCol = col + 1;
-    bool stop = false;
-    while (!stop)
-    {
-        if (ValidPos(auxRow, auxCol) && PosEmpty(auxRow, auxCol))
-        {
-            AddLegalMove(auxRow, auxCol);
-            auxRow++;
-            auxCol++;
-        }
-        else if (ValidPos(auxRow, auxCol) && CapturablePos(auxRow, auxCol, color))
-        {
-            AddLegalMove(auxRow, auxCol);
-            stop = true;
-        }
-        else
-        {
-            stop = true;
-        }
-    }
-
-    auxRow = row - 1;
-    auxCol = col - 1;
-    stop = false;
-    while (!stop)
-    {
-        if (ValidPos(auxRow, auxCol) && PosEmpty(auxRow, auxCol))
-        {
-            AddLegalMove(auxRow, auxCol);
-            auxRow--;
-            auxCol--;
-        }
-        else if (ValidPos(auxRow, auxCol) && CapturablePos(auxRow, auxCol, color))
-        {
-            AddLegalMove(auxRow, auxCol);
-            stop = true;
-        }
-        else
-        {
-            stop = true;
-        }
-    }
-
-    auxRow = row + 1;
-    auxCol = col - 1;
-    stop = false;
-    while (!stop)
-    {
-        if (ValidPos(auxRow, auxCol) && PosEmpty(auxRow, auxCol))
-        {
-            AddLegalMove(auxRow, auxCol);
-            auxRow++;
-            auxCol--;
-        }
-        else if (ValidPos(auxRow, auxCol) && CapturablePos(auxRow, auxCol, color))
-        {
-            AddLegalMove(auxRow, auxCol);
-            stop = true;
-        }
-        else
-        {
-            stop = true;
-        }
-    }
-
-    auxRow = row - 1;
-    auxCol = col + 1;
-    stop = false;
-    while (!stop)
-    {
-        if (ValidPos(auxRow, auxCol) && PosEmpty(auxRow, auxCol))
-        {
-            AddLegalMove(auxRow, auxCol);
-            auxRow--;
-            auxCol++;
-        }
-        else if (ValidPos(auxRow, auxCol) && CapturablePos(auxRow, auxCol, color))
-        {
-            AddLegalMove(auxRow, auxCol);
-            stop = true;
-        }
-        else
-        {
-            stop = true;
-        }
-    }
-}
-
-void Board::GetQueenMoves(int row, int col, PieceColor color)
-{
-    GetRookMoves(row, col, color);
-    GetBishopMoves(row, col, color);
-}
-
-void Board::checkRooksKingsMoved(int rowPieceMoved, int colPieceMoved)
-{
-    int row = rowPieceMoved;
-    int col = colPieceMoved;
-
-    if (GetPType(row, col) != PieceType::ROOK && GetPType(row, col) != PieceType::KING)
-        return;
-
-    if (GetPType(row, col) == PieceType::KING)
-    {
-        if (GetPColor(row, col) == PieceColor::WHITE)
-        {
-            if (!whiteKingMoved)
-            {
-                whiteKingMoved = true;
-            }
-        }
-        else
-        {
-            if (!blackKingMoved)
-            {
-                blackKingMoved = true;
-            }
-        }
-        return;
-    }
-
-    if (GetPColor(row, col) == PieceColor::WHITE)
-    {
-        if (!queenRookMovedW && row == 0 && col == 0)
-        {
-            queenRookMovedW = true;
-        }
-
-        if (!kingRookMovedW && row == 0 && col == 7)
-        {
-            kingRookMovedW = true;
-        }
-    }
-    else
-    {
-        if (!queenRookMovedB && row == 7 && col == 0)
-        {
-            queenRookMovedB = true;
-        }
-
-        if (!kingRookMovedB && row == 7 && col == 7)
-        {
-            kingRookMovedB = true;
-        }
-    }
-}
-
-bool Board::castleReady(bool shortCastle, PieceColor color) const
-{
-    if (color == PieceColor::WHITE && whiteKingMoved)
-    {
-        return false;
-    }
-
-    if (color == PieceColor::BLACK && blackKingMoved)
-    {
-        return false;
-    }
-
-    if (color == PieceColor::WHITE)
-    {
-        if (!shortCastle)
-        {
-            return !queenRookMovedW && PosEmpty(0, 1) && PosEmpty(0, 2) && PosEmpty(0, 3);
-        }
-        else
-        {
-            return !kingRookMovedW && PosEmpty(0, 6) && PosEmpty(0, 5);
-        }
-    }
-    else
-    {
-        if (!shortCastle)
-        {
-            return !queenRookMovedB && PosEmpty(7, 1) && PosEmpty(7, 2) && PosEmpty(7, 3);
-        }
-        else
-        {
-            return !kingRookMovedB && PosEmpty(7, 6) && PosEmpty(7, 5);
-        }
-    }
-}
-
-bool Board::moveCastle(int originRow, int originCol, int finalRow, int finalCol)
-{
-    // return if the movement is a castle move
-
-    bool castleMove = false;
-
-    if (GetPType(originRow, originCol) == PieceType::KING)
-    {
-        if (GetPColor(originRow, originCol) == PieceColor::WHITE)
-        {
-            if (!whiteKingMoved && finalRow == 0)
-            {
-                if (finalCol == 7) // shortCastle white
+                if (move.iniRow == rowSelected && move.iniCol == colSelected)
                 {
-                    squares[0][6]->PutPiece(PieceType::KING, PieceColor::WHITE);
-                    squares[0][5]->PutPiece(PieceType::ROOK, PieceColor::WHITE);
-                    squares[0][7]->Clear();
-                    squares[originRow][originCol]->Clear();
-
-                    kingRookMovedW = true;
-                    whiteKingMoved = true;
-                    castleMove = true;
-                }
-                else if (finalCol == 0) // longCastle white
-                {
-                    squares[0][2]->PutPiece(PieceType::KING, PieceColor::WHITE);
-                    squares[0][3]->PutPiece(PieceType::ROOK, PieceColor::WHITE);
-                    squares[0][0]->Clear();
-                    squares[originRow][originCol]->Clear();
-
-                    queenRookMovedW = true;
-                    whiteKingMoved = true;
-                    castleMove = true;
-                }
-            }
-        }
-        else
-        {
-            if (!blackKingMoved && finalRow == 7)
-            {
-                if (finalCol == 7) // shortCastle black
-                {
-                    squares[7][6]->PutPiece(PieceType::KING, PieceColor::BLACK);
-                    squares[7][5]->PutPiece(PieceType::ROOK, PieceColor::BLACK);
-                    squares[7][7]->Clear();
-                    squares[originRow][originCol]->Clear();
-
-                    kingRookMovedB = true;
-                    blackKingMoved = true;
-                    castleMove = true;
-                }
-                else if (finalCol == 0) // longCastle black
-                {
-                    squares[7][2]->PutPiece(PieceType::KING, PieceColor::BLACK);
-                    squares[7][3]->PutPiece(PieceType::ROOK, PieceColor::BLACK);
-                    squares[7][0]->Clear();
-                    squares[originRow][originCol]->Clear();
-
-                    queenRookMovedB = true;
-                    blackKingMoved = true;
-                    castleMove = true;
+                    SelectPos(move.endRow, move.endCol);
                 }
             }
         }
     }
+}
 
-    return castleMove;
+void Board::MovePiece(Move move)
+{
+    if (move.iniRow == move.endRow && move.iniCol == move.endCol)
+        return;
+
+    squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
+                                                GetPColor(move.iniRow, move.iniCol));
+
+    squares[move.iniRow][move.iniCol]->Clear();
+
+    chessEngine.MakeMove(move);
+}
+
+void Board::UnSelectBoard()
+{
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            UnSelectPos(i, j);
+        }
+    }
 }

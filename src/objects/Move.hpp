@@ -1,122 +1,49 @@
 #pragma once
-#include "Piece.hpp"
-#include <string>
 
-struct Move
+#include "PieceType.hpp"
+
+enum class MoveType;
+
+class Move
 {
+public:
+    short iniRow;
+    short iniCol;
+    short endRow;
+    short endCol;
+    MoveType type;
 
-    int iniRow;
-    int iniCol;
-    int endRow;
-    int endCol;
-    PieceType piece;
-    bool capture = false;
-    bool check = false;
-    bool checkMate = false;
-    bool shortCastle = false;
-    bool longCastle = false;
-    bool promotion = false;
-    bool specifyIniRow = false;
-    bool specifyIniCol = false;
-    PieceType promotionPiece = PieceType::QUEEN;
+    Move(short iniRow, short iniCol, short endRow, short endCol, MoveType type);
 
-    std::string ToString()
-    {
-        std::string result;
-        result.reserve(8);
+    Move(Move &&other) noexcept;
 
-        if (shortCastle)
-        {
-            result.append("0-0");
-        }
-        else if (longCastle)
-        {
-            result.append("0-0-0");
-        }
-        else
-        {
-            if (piece == PieceType::PAWN)
-            {
-                result.append("" + colToChar(iniCol));
-            }
-            else
-            {
-                result.append("" + pieceTypeToChar(piece));
-            }
+    Move(const Move &other);
 
-            if (specifyIniCol)
-            {
-                result.append("" + colToChar(iniCol));
-            }
+    ~Move(){}
 
-            if (specifyIniRow)
-            {
-                result.append("" + ('0' + iniRow));
-            }
-
-            if (capture)
-            {
-                result.append("" + 'x');
-            }
-
-            result.append("" + colToChar(endCol) + ('0' + endRow));
-
-
-            if(promotion)
-            {
-                result.append("=" + pieceTypeToChar(piece)); 
-            }
-        }
-
-        if (checkMate)
-        {
-            result.append("#");
-        }
-        else if (check)
-        {
-            result.append("+");
-        }
-
-        return result;
-    }
-
-private:
-    char colToChar(int col)
-    {
-        if (col < 1 || col > 8)
-            return '0'; // error
-
-        return 'a' + col - 1;
-    }
-
-    char pieceTypeToChar(PieceType type)
-    {
-        switch (type)
-        {
-        case PieceType::KING:
-            return 'K';
-            break;
-        case PieceType::QUEEN:
-            return 'Q';
-            break;
-        case PieceType::KNIGHT:
-            return 'N';
-            break;
-        case PieceType::BISHOP:
-            return 'B';
-            break;
-        case PieceType::ROOK:
-            return 'R';
-            break;
-        default:
-            return '0';
-            break;
-        }
-    }
+    Move &operator=(Move &&other) noexcept;
 };
 
-struct BoardPos
+enum class MoveType
 {
-    int row;
-    int col;
+    QUIET = 0,
+    KINGCASTLE = 1,
+    QUEENCASTLE = 2,
+    DOUBLEPAWNPUSH = 3,
+    ENPASSANT = 4,
+    CAPTURE = 5,
+    QUEENPROMOTION = 6,
+    ROOKPROMOTION = 7,
+    BISHOPPROMOTION = 8,
+    KNIGHTPROMOTION = 9,
+    QUEENPROMOCAPTURE = 10,
+    ROOKPROMOCAPTURE = 11,
+    BISHOPPROMOCAPTURE = 12,
+    KNIGHTPROMOCAPTURE = 13
+};
+
+struct PieceInfo
+{
+    PieceType type;
+    PieceColor color;
 };

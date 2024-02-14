@@ -9,7 +9,7 @@
 class EventManager
 {
 public:
-    EventManager(GLFWwindow *window,std::shared_ptr<Renderer> renderer, std::shared_ptr<Board> board);
+    EventManager(GLFWwindow *window, std::shared_ptr<Renderer> renderer, std::shared_ptr<Board> board);
     ~EventManager();
 
 private:
@@ -20,4 +20,3 @@ private:
     static std::shared_ptr<Renderer> renderer;
     static std::shared_ptr<Board> board;
 };
-

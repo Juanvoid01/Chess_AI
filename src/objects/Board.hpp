@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Square.hpp"
-#include "Move.hpp"
 #include <vector>
+#include "../ChessEngine.hpp"
 
 class Board : public Object
 {
@@ -10,7 +10,6 @@ public:
     Board(float posX, float posY, float width, float height, const Renderer &r);
     ~Board();
     void Render();
-    const std::vector<Move> &GetMoves(int col, int row);
 
     void Clear();
     void PutInitialPosition();
@@ -30,33 +29,12 @@ private:
     int rowSelected = -1;
     int colSelected = -1;
 
-    std::vector<BoardPos> legalMoves;
+    ChessEngine chessEngine;
 
-    int rowEnPassant = -1;
-    int colEnPassant = -1;
-    PieceColor colorEnPassant;
-    bool EnPassantReady = false;
-
-    bool kingRookMovedW = false;
-    bool queenRookMovedW = false;
-    bool kingRookMovedB = false;
-    bool queenRookMovedB = false;
-    bool whiteKingMoved = false;
-    bool blackKingMoved = false;
-
-    void MovePiece(int originRow, int originCol, int finalRow, int finalCol);
+    void MovePiece(Move move);
 
     void SelectPiece(int row, int col);
     void UnSelectPiece();
-
-    void GetLegalMoves(int row, int col);
-
-    void GetPawnMoves(int row, int col, PieceColor color);
-    void GetKnightMoves(int row, int col, PieceColor color);
-    void GetRookMoves(int row, int col, PieceColor color);
-    void GetQueenMoves(int row, int col, PieceColor color);
-    void GetKingMoves(int row, int col, PieceColor color);
-    void GetBishopMoves(int row, int col, PieceColor color);
 
     inline PieceType GetPType(int row, int col) const { return squares[row][col]->GetPiece(); }
 
@@ -70,18 +48,5 @@ private:
 
     inline void UnSelectPos(int row, int col) { return squares[row][col]->UnSelect(); }
 
-    inline void AddLegalMove(int row, int col) { legalMoves.push_back({row, col}); }
-
-    inline bool CapturablePos(int row, int col, PieceColor color) const { return !PosEmpty(row, col) && GetPColor(row, col) != color; }
-
-    inline bool isCaptureEnPassant(int row, int col, PieceColor color) const
-    {
-        return row == rowEnPassant && col == colEnPassant && color != colorEnPassant;
-    }
-
-    bool castleReady(bool shortCastle, PieceColor color) const;
-
-    void checkRooksKingsMoved(int rowPieceMoved, int colPieceMoved);
-
-    bool moveCastle(int originRow, int originCol, int finalRow, int finalCol);
+    void UnSelectBoard();
 };

@@ -13,7 +13,6 @@ include_directories(src/extern/stb_image)
 include_directories(src/extern/glm)
 include_directories(src/utils)
 include_directories(src/objects)
-
 include_directories(res)
 
 add_executable(chess_AI 
@@ -22,6 +21,7 @@ src/extern/stb_image/stb_image.cpp
 src/viewer.cpp 
 src/controller.cpp 
 src/logic.cpp
+src/ChessEngine.cpp
 src/utils/Object.cpp
 src/utils/Renderer.cpp
 src/utils/VertexBuffer.cpp
@@ -36,7 +36,8 @@ src/utils/EventManager.cpp
 src/objects/Piece.cpp
 src/objects/Square.cpp
 src/objects/Board.cpp
-src/objects/Move.hpp
+src/objects/Move.cpp
+src/objects/PieceType.hpp
 )
 
 target_compile_options(chess_AI PRIVATE -g)
