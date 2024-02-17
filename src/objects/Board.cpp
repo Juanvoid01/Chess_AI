@@ -201,6 +201,17 @@ void Board::MovePiece(Move move)
     chessEngine.MakeMove(move);
 }
 
+void Board::SelectLastMove()
+{
+    Move move = chessEngine.GetLastMove();
+
+    if(move.iniCol == -1)
+        return;
+
+    SelectAsLastMove(move.iniRow,move.iniCol);
+    SelectAsLastMove(move.endRow,move.endCol);
+}
+
 void Board::UnSelectBoard()
 {
     for (int i = 0; i < 8; i++)
@@ -210,4 +221,5 @@ void Board::UnSelectBoard()
             UnSelectPos(i, j);
         }
     }
+    SelectLastMove();
 }

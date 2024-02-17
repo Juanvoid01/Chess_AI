@@ -15,7 +15,20 @@ Move::Move(Move &&other) noexcept
 {
 }
 
-Move& Move::operator=(Move &&other) noexcept
+Move& Move::operator=(const Move &other)
+{
+    if (this != &other)
+    { 
+        iniRow = other.iniRow;
+        iniCol = other.iniCol;
+        endRow = other.endRow;
+        endCol = other.endCol;
+        type = other.type;
+    }
+    return *this;
+}
+
+Move &Move::operator=(Move &&other) noexcept
 {
     if (this != &other)
     {

@@ -46,7 +46,11 @@ private:
 
     inline void SelectPos(int row, int col) { return squares[row][col]->Select(); }
 
+    inline void SelectAsLastMove(int row, int col) { return squares[row][col]->SelectAsLastMove(); }
+
     inline void UnSelectPos(int row, int col) { return squares[row][col]->UnSelect(); }
 
+    void SelectLastMove();
+    
     void UnSelectBoard();
 };

@@ -17,37 +17,64 @@ public:
     void SetInitialPosition();
     void ClearBoard();
     void MakeMove(Move move);
+    inline Move GetLastMove() const { return lastMove; }
 
 private:
     std::vector<Move> legalMoves;
     std::bitset<64> kingDangerSquares;
     std::bitset<64> attackedSquares;
+    std::bitset<64> captureMask;
+    std::bitset<64> pushMask;
+
     std::array<std::array<PieceInfo, 8>, 8> pieces;
     PieceColor turn = PieceColor::WHITE;
+    Move lastMove = Move(-1, -1, -1, -1, MoveType::QUIET);
 
-    inline void SetAttackedSquare(int row, int col, bool value) { attackedSquares.set(row * 8 + col, value); }
-    inline void SetkingDangerSquare(int row, int col, bool value) { kingDangerSquares.set(row * 8 + col, value); }
-    inline bool GetAttackedSquare(int row, int col) { return attackedSquares[row * 8 + col]; }
-    inline bool GetkingDangerSquare(int row, int col) { return kingDangerSquares[row * 8 + col]; }
-    inline bool ValidPos(int row, int col) const { return row >= 0 && row < 8 && col >= 0 && col < 8; }
-    inline bool PosEmpty(int row, int col) const { return pieces[row][col].type == PieceType::EMPTY; }
-    inline bool CapturablePos(int row, int col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color != color; }
-    inline void ClearPos(int row, int col) { pieces[row][col] = {PieceType::EMPTY, PieceColor::WHITE}; }
-    inline bool isEnemyKing(int row, int col, PieceColor color) const { return pieces[row][col].type == PieceType::KING && pieces[row][col].color != color; }
+    short checkerRow = -1;
+    short checkerCol = -1;
+    short checkersNum = 0;
+    short kingRowW = -1, kingColW = -1;
+    short kingRowB = -1, kingColB = -1;
+
+    inline void SetAttackedSquare(short row, short col, bool value) { attackedSquares.set(row * 8 + col, value); }
+    inline void SetkingDangerSquare(short row, short col, bool value) { kingDangerSquares.set(row * 8 + col, value); }
+    inline void SetCaptureMask(short row, short col, bool value) { captureMask.set(row * 8 + col, value); }
+    inline void SetPushMask(short row, short col, bool value) { pushMask.set(row * 8 + col, value); }
+
+    inline bool GetAttackedSquare(short row, short col) const { return attackedSquares[row * 8 + col]; }
+    inline bool GetkingDangerSquare(short row, short col) const { return kingDangerSquares[row * 8 + col]; }
+    inline bool GetCaptureMask(short row, short col) const { return captureMask[row * 8 + col]; }
+    inline bool GetPushMask(short row, short col) const { return pushMask[row * 8 + col]; }
+
+    inline bool ValidPos(short row, short col) const { return row >= 0 && row < 8 && col >= 0 && col < 8; }
+    inline bool PosEmpty(short row, short col) const { return pieces[row][col].type == PieceType::EMPTY; }
+    inline bool CapturablePos(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color != color; }
+    inline void ClearPos(short row, short col) { pieces[row][col] = {PieceType::EMPTY, PieceColor::WHITE}; }
+    inline bool isEnemyKing(short row, short col, PieceColor color) const { return pieces[row][col].type == PieceType::KING && pieces[row][col].color != color; }
 
     void updateDangers();
-    void UpdatePawnDangers(int row, int col, PieceColor color);
-    void UpdateKnightDangers(int row, int col, PieceColor color);
-    void UpdateRookDangers(int row, int col, PieceColor color);
-    void UpdateKingDangers(int row, int col, PieceColor color);
-    void UpdateBishopDangers(int row, int col, PieceColor color);
-    void UpdateQueenDangers(int row, int col, PieceColor color);
+    void UpdatePawnDangers(short row, short col, PieceColor color);
+    void UpdateKnightDangers(short row, short col, PieceColor color);
+    void UpdateRookDangers(short row, short col, PieceColor color);
+    void UpdateKingDangers(short row, short col, PieceColor color);
+    void UpdateBishopDangers(short row, short col, PieceColor color);
+    void UpdateQueenDangers(short row, short col, PieceColor color);
 
     void updateLegalMoves();
-    void UpdatePawnMoves(int row, int col, PieceColor color);
-    void UpdateKnightMoves(int row, int col, PieceColor color);
-    void UpdateRookMoves(int row, int col, PieceColor color);
-    void UpdateKingMoves(int row, int col, PieceColor color);
-    void UpdateBishopMoves(int row, int col, PieceColor color);
-    void UpdateQueenMoves(int row, int col, PieceColor color);
+    void UpdatePawnMoves(short row, short col, PieceColor color);
+    void UpdateKnightMoves(short row, short col, PieceColor color);
+    void UpdateRookMoves(short row, short col, PieceColor color);
+    void UpdateKingMoves(short row, short col, PieceColor color);
+    void UpdateBishopMoves(short row, short col, PieceColor color);
+    void UpdateQueenMoves(short row, short col, PieceColor color);
+
+    bool IsSlider(short row, short col) const;
+
+    void UpdateCheck();
+    inline void AddChecker(short row, short col)
+    {
+        checkersNum++;
+        checkerRow = row;
+        checkerCol = col;
+    }
 };

@@ -19,7 +19,9 @@ public:
 
     Move(const Move &other);
 
-    ~Move(){}
+    ~Move() {}
+
+    Move &operator=(const Move &other);
 
     Move &operator=(Move &&other) noexcept;
 };

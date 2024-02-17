@@ -19,7 +19,7 @@ void Viewer::run()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(640, 480, "Chess AI", NULL, NULL);
+    window = glfwCreateWindow(1024, 720, "Chess AI", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -46,13 +46,12 @@ void Viewer::run()
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
         std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight);
-        std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 200.0f, 200.0f, *renderer);
+        std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer);
 
         EventManager eventManager(window, renderer, board);
 
         board->PutInitialPosition();
 
-        board->SetScale(2.f, 2.f);
         board->SetCenter(windowWidth / 2, windowHeight / 2);
 
         // Loop until the user closes the window

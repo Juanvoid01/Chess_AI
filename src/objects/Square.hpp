@@ -40,13 +40,39 @@ public:
 
     inline bool IsSelected() const { return selected; }
 
-    inline void Select() { selected = true; }
-    inline void UnSelect() { selected = false; }
+    inline void Select()
+    {
+        selected = true;
+        if (isLastMove)
+        {
+            isLastMove = false;
+            SetColor(selectedColor);
+        }
+    }
+
+    inline void SelectAsLastMove()
+    {
+        selected = true;
+        SetColor(lastMoveColor);
+        isLastMove = true;
+    }
+
+    inline void UnSelect()
+    {
+        selected = false;
+        if (isLastMove)
+        {
+            isLastMove = false;
+            SetColor(selectedColor);
+        }
+    }
 
 private:
     Piece piece;
     int row;
     int col;
     glm::vec4 selectedColor = glm::vec4(0.f, 0.5f, 0.f, 0.5f);
+    glm::vec4 lastMoveColor = glm::vec4(0.8f, 0.8f, 0.f, 0.5f);
     bool selected = false;
+    bool isLastMove = false;
 };
