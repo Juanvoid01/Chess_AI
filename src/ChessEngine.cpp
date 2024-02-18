@@ -88,6 +88,16 @@ void ChessEngine::MakeMove(Move move)
     lastMove = move;
 }
 
+bool ChessEngine::IsCheckMate() const
+{
+    return legalMoves.size() == 0 && checkersNum > 0;
+}
+
+bool ChessEngine::IsStaleMate() const
+{
+    return legalMoves.size() == 0 && checkersNum == 0;
+}
+
 void ChessEngine::updateDangers()
 {
 

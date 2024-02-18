@@ -19,6 +19,9 @@ public:
     void MakeMove(Move move);
     inline Move GetLastMove() const { return lastMove; }
 
+    bool IsCheckMate() const;
+    bool IsStaleMate() const;
+
 private:
     std::vector<Move> legalMoves;
     std::bitset<64> kingDangerSquares;
