@@ -25,6 +25,7 @@ private:
     std::bitset<64> attackedSquares;
     std::bitset<64> captureMask;
     std::bitset<64> pushMask;
+    std::bitset<64> pinnedPieces;
 
     std::array<std::array<PieceInfo, 8>, 8> pieces;
     PieceColor turn = PieceColor::WHITE;
@@ -33,18 +34,20 @@ private:
     short checkerRow = -1;
     short checkerCol = -1;
     short checkersNum = 0;
-    short kingRowW = -1, kingColW = -1;
-    short kingRowB = -1, kingColB = -1;
+    short kingRowW = 0, kingColW = 4;
+    short kingRowB = 7, kingColB = 4;
 
     inline void SetAttackedSquare(short row, short col, bool value) { attackedSquares.set(row * 8 + col, value); }
     inline void SetkingDangerSquare(short row, short col, bool value) { kingDangerSquares.set(row * 8 + col, value); }
     inline void SetCaptureMask(short row, short col, bool value) { captureMask.set(row * 8 + col, value); }
     inline void SetPushMask(short row, short col, bool value) { pushMask.set(row * 8 + col, value); }
+    inline void SetPinnedPiece(short row, short col, bool value) { pinnedPieces.set(row * 8 + col, value); }
 
     inline bool GetAttackedSquare(short row, short col) const { return attackedSquares[row * 8 + col]; }
     inline bool GetkingDangerSquare(short row, short col) const { return kingDangerSquares[row * 8 + col]; }
     inline bool GetCaptureMask(short row, short col) const { return captureMask[row * 8 + col]; }
     inline bool GetPushMask(short row, short col) const { return pushMask[row * 8 + col]; }
+    inline bool GetPinnedPiece(short row, short col) const { return pinnedPieces[row * 8 + col]; }
 
     inline bool ValidPos(short row, short col) const { return row >= 0 && row < 8 && col >= 0 && col < 8; }
     inline bool PosEmpty(short row, short col) const { return pieces[row][col].type == PieceType::EMPTY; }
@@ -71,6 +74,9 @@ private:
     bool IsSlider(short row, short col) const;
 
     void UpdateCheck();
+    void UpdatePins();
+    bool IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short destRow, short destCol) const;
+
     inline void AddChecker(short row, short col)
     {
         checkersNum++;

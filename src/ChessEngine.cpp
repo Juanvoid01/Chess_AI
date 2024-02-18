@@ -519,11 +519,14 @@ void ChessEngine::updateLegalMoves()
     kingDangerSquares.reset();
     captureMask.set();
     pushMask.set();
+    pinnedPieces.reset();
     checkersNum = 0;
 
     updateDangers();
 
     UpdateCheck();
+
+    UpdatePins();
 
     if (checkersNum >= 2) // when double check only king moves allowed
         return;
@@ -573,55 +576,65 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
     // pawn push
     if (ValidPos(nextRow, col) && PosEmpty(nextRow, col) && row != prePromotionRow)
     {
-        if (GetPushMask(nextRow, col))
+        if (GetPushMask(nextRow, col) && IsPinnedPieceLegalMove(row, col, nextRow, col))
             legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::QUIET));
     }
 
     // diagonal captures
     if (ValidPos(nextRow, col + 1) && CapturablePos(nextRow, col + 1, color))
     {
-        if (GetCaptureMask(nextRow, col + 1))
+        if (GetCaptureMask(nextRow, col + 1) && IsPinnedPieceLegalMove(row, col, nextRow, col + 1))
             legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::CAPTURE));
     }
 
     if (ValidPos(nextRow, col - 1) && CapturablePos(nextRow, col - 1, color))
     {
-        if (GetCaptureMask(nextRow, col - 1))
+        if (GetCaptureMask(nextRow, col - 1) && IsPinnedPieceLegalMove(row, col, nextRow, col - 1))
             legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::CAPTURE));
     }
 
     if (row == startRow)
     {
-        if (PosEmpty(nextRow, col) && PosEmpty(nextRow + dir, col) && GetPushMask(nextRow + dir, col))
+        if (PosEmpty(nextRow, col) && PosEmpty(nextRow + dir, col))
         {
-            legalMoves.emplace_back(Move(row, col, nextRow + dir, col, MoveType::DOUBLEPAWNPUSH));
+            if (GetPushMask(nextRow + dir, col) && IsPinnedPieceLegalMove(row, col, nextRow + dir, col))
+                legalMoves.emplace_back(Move(row, col, nextRow + dir, col, MoveType::DOUBLEPAWNPUSH));
         }
     }
     else if (row == prePromotionRow)
     {
         if (PosEmpty(nextRow, col) && GetPushMask(nextRow, col))
         {
-            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::QUEENPROMOTION));
-            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::ROOKPROMOTION));
-            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::BISHOPPROMOTION));
-            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::KNIGHTPROMOTION));
+            if (IsPinnedPieceLegalMove(row, col, nextRow, col))
+            {
+                legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::QUEENPROMOTION));
+                legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::ROOKPROMOTION));
+                legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::BISHOPPROMOTION));
+                legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::KNIGHTPROMOTION));
+            }
         }
 
         // diagonal captures while promotion
         if (ValidPos(nextRow, col + 1) && CapturablePos(nextRow, col + 1, color) && GetCaptureMask(nextRow, col + 1))
         {
-            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::QUEENPROMOTION));
-            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::ROOKPROMOTION));
-            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::BISHOPPROMOTION));
-            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::KNIGHTPROMOTION));
+            if (IsPinnedPieceLegalMove(row, col, nextRow, col + 1))
+            {
+                legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::QUEENPROMOTION));
+                legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::ROOKPROMOTION));
+                legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::BISHOPPROMOTION));
+                legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::KNIGHTPROMOTION));
+            }
         }
 
         if (ValidPos(nextRow, col - 1) && CapturablePos(nextRow, col - 1, color) && GetCaptureMask(nextRow, col - 1))
         {
-            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::QUEENPROMOCAPTURE));
-            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::ROOKPROMOCAPTURE));
-            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::BISHOPPROMOCAPTURE));
-            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::KNIGHTPROMOCAPTURE));
+            if (IsPinnedPieceLegalMove(row, col, nextRow, col - 1))
+            {
+                legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::QUEENPROMOCAPTURE));
+                legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::ROOKPROMOCAPTURE));
+                legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::BISHOPPROMOCAPTURE));
+                legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::KNIGHTPROMOCAPTURE));
+            }
         }
     }
     else if (row == enPassantRow)
@@ -633,7 +646,7 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
 {
     short destRow = row + 1, destCol = col + 2;
 
-    if (ValidPos(destRow, destCol))
+    if (ValidPos(destRow, destCol) && IsPinnedPieceLegalMove(row, col, destRow, destCol))
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
@@ -646,7 +659,8 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     }
 
     destRow = row + 1, destCol = col - 2;
-    if (ValidPos(destRow, destCol))
+
+    if (ValidPos(destRow, destCol) && IsPinnedPieceLegalMove(row, col, destRow, destCol))
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
@@ -659,7 +673,8 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     }
 
     destRow = row - 1, destCol = col + 2;
-    if (ValidPos(destRow, destCol))
+
+    if (ValidPos(destRow, destCol) && IsPinnedPieceLegalMove(row, col, destRow, destCol))
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
@@ -672,7 +687,8 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     }
 
     destRow = row - 1, destCol = col - 2;
-    if (ValidPos(destRow, destCol))
+
+    if (ValidPos(destRow, destCol) && IsPinnedPieceLegalMove(row, col, destRow, destCol))
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
@@ -685,7 +701,8 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     }
 
     destRow = row + 2, destCol = col + 1;
-    if (ValidPos(destRow, destCol))
+
+    if (ValidPos(destRow, destCol) && IsPinnedPieceLegalMove(row, col, destRow, destCol))
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
@@ -698,7 +715,8 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     }
 
     destRow = row + 2, destCol = col - 1;
-    if (ValidPos(destRow, destCol))
+
+    if (ValidPos(destRow, destCol) && IsPinnedPieceLegalMove(row, col, destRow, destCol))
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
@@ -711,7 +729,8 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     }
 
     destRow = row - 2, destCol = col + 1;
-    if (ValidPos(destRow, destCol))
+
+    if (ValidPos(destRow, destCol) && IsPinnedPieceLegalMove(row, col, destRow, destCol))
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
@@ -724,7 +743,8 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     }
 
     destRow = row - 2, destCol = col - 1;
-    if (ValidPos(destRow, destCol))
+
+    if (ValidPos(destRow, destCol) && IsPinnedPieceLegalMove(row, col, destRow, destCol))
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
@@ -742,6 +762,9 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
 
     for (short i = row + 1; i < 8; i++)
     {
+        if (!IsPinnedPieceLegalMove(row, col, i, col))
+            continue;
+
         if (PosEmpty(i, col))
         {
             if (GetPushMask(i, col))
@@ -759,6 +782,9 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
 
     for (short i = row - 1; i >= 0; i--)
     {
+        if (!IsPinnedPieceLegalMove(row, col, i, col))
+            continue;
+
         if (PosEmpty(i, col))
         {
             if (GetPushMask(i, col))
@@ -776,6 +802,9 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
 
     for (short i = col + 1; i < 8; i++)
     {
+        if (!IsPinnedPieceLegalMove(row, col, row, i))
+            continue;
+
         if (PosEmpty(row, i))
         {
             if (GetPushMask(row, i))
@@ -793,6 +822,9 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
 
     for (short i = col - 1; i >= 0; i--)
     {
+        if (!IsPinnedPieceLegalMove(row, col, row, i))
+            continue;
+
         if (PosEmpty(row, i))
         {
             if (GetPushMask(row, i))
@@ -844,7 +876,7 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
     short i = row + 1, j = col + 1;
     while (i < 8 && j < 8)
     {
-        if (!ValidPos(i, j))
+        if (!ValidPos(i, j) || !IsPinnedPieceLegalMove(row, col, i, j))
             break;
 
         if (PosEmpty(i, j))
@@ -867,7 +899,7 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
     i = row - 1, j = col - 1;
     while (i >= 0 && j >= 0)
     {
-        if (!ValidPos(i, j))
+        if (!ValidPos(i, j) || !IsPinnedPieceLegalMove(row, col, i, j))
             break;
 
         if (PosEmpty(i, j))
@@ -890,7 +922,7 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
     i = row + 1, j = col - 1;
     while (i < 8 && j >= 0)
     {
-        if (!ValidPos(i, j))
+        if (!ValidPos(i, j) || !IsPinnedPieceLegalMove(row, col, i, j))
             break;
 
         if (PosEmpty(i, j))
@@ -913,7 +945,7 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
     i = row - 1, j = col + 1;
     while (i >= 0 && j < 8)
     {
-        if (!ValidPos(i, j))
+        if (!ValidPos(i, j) || !IsPinnedPieceLegalMove(row, col, i, j))
             break;
 
         if (PosEmpty(i, j))
@@ -1009,4 +1041,154 @@ void ChessEngine::UpdateCheck()
 
         UpdateKingMoves(kingRow, kingCol, turn);
     }
+}
+
+void ChessEngine::UpdatePins()
+{
+    /*short kingRow = turn == PieceColor::WHITE ? kingRowW : kingRowB;
+    short kingCol = turn == PieceColor::WHITE ? kingColW : kingColB;
+
+    // horizontal moves
+
+    for (short i = kingRow + 1; i < 8; i++)
+    {
+        if (!PosEmpty(i, kingCol) && pieces[i][kingCol].color == turn)
+        {
+            if (GetAttackedSquare(i, kingCol))
+                SetPinnedPiece(i, kingCol, true);
+            break;
+        }
+    }
+
+    for (short i = kingRow - 1; i >= 0; i--)
+    {
+        if (!PosEmpty(i, kingCol) && pieces[i][kingCol].color == turn)
+        {
+            if (GetAttackedSquare(i, kingCol))
+                SetPinnedPiece(i, kingCol, true);
+            break;
+        }
+    }
+
+    for (short i = kingCol + 1; i < 8; i++)
+    {
+        if (!PosEmpty(kingRow, i) && pieces[kingRow][i].color == turn)
+        {
+            if (GetAttackedSquare(kingRow, i))
+                SetPinnedPiece(kingRow, i, true);
+            break;
+        }
+    }
+
+    for (short i = kingCol - 1; i >= 0; i--)
+    {
+        if (!PosEmpty(kingRow, i) && pieces[kingRow][i].color == turn)
+        {
+            if (GetAttackedSquare(kingRow, i))
+                SetPinnedPiece(kingRow, i, true);
+            break;
+        }
+    }
+
+    // diagonal moves
+
+    short i = kingRow + 1, j = kingCol + 1;
+    while (i < 8 && j < 8)
+    {
+        if (!ValidPos(i, j))
+            break;
+
+        if (!PosEmpty(i, j) && pieces[i][j].color == turn)
+        {
+            if (GetAttackedSquare(i, j))
+                SetPinnedPiece(i, j, true);
+            break;
+        }
+        i++;
+        j++;
+    }
+
+    i = kingRow - 1, j = kingCol - 1;
+    while (i >= 0 && j >= 0)
+    {
+        if (!ValidPos(i, j))
+            break;
+
+        if (!PosEmpty(i, j) && pieces[i][j].color == turn)
+        {
+            if (GetAttackedSquare(i, j))
+                SetPinnedPiece(i, j, true);
+            break;
+        }
+        i--;
+        j--;
+    }
+
+    i = kingRow + 1, j = kingCol - 1;
+    while (i < 8 && j >= 0)
+    {
+        if (!ValidPos(i, j))
+            break;
+
+        if (!PosEmpty(i, j) && pieces[i][j].color == turn)
+        {
+            if (GetAttackedSquare(i, j))
+                SetPinnedPiece(i, j, true);
+            break;
+        }
+        i++;
+        j--;
+    }
+
+    i = kingRow - 1, j = kingCol + 1;
+    while (i >= 0 && j < 8)
+    {
+        if (!ValidPos(i, j))
+            break;
+
+        if (!PosEmpty(i, j) && pieces[i][j].color == turn)
+        {
+            if (GetAttackedSquare(i, j))
+                SetPinnedPiece(i, j, true);
+            break;
+        }
+        i--;
+        j++;
+    }*/
+}
+
+bool ChessEngine::IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short destRow, short destCol) const
+{
+    if (!GetPinnedPiece(pieceRow, pieceCol))
+        return true; // piece is not pinned
+
+    bool isLegal = false;
+
+    PieceColor pieceColor = pieces[pieceRow][pieceCol].color;
+    short kingRow = pieceColor == PieceColor::WHITE ? kingRowW : kingRowB;
+    short kingCol = pieceColor == PieceColor::WHITE ? kingColW : kingColB;
+
+    if (pieceRow == kingRow) // horizontal pin
+    {
+        if (destRow == pieceRow)
+        {
+            isLegal = true;
+        }
+    }
+    else if (pieceCol == kingCol) // vertical pin
+    {
+        if (destCol == pieceCol)
+        {
+            isLegal = true;
+        }
+    }
+    else // diagonak pin
+    {
+        /*if (kingCol - kingRow == destCol - destRow)
+        {
+            isLegal = true;
+        }*/
+    }
+
+    return false;
 }
