@@ -20,7 +20,7 @@
 
 * Game
 
-<img src="https://github.com/Juanvoid01/Chess_AI/res/photos/photos/chessPhoto.png" > <br>
+![alt text](https://github.com/Juanvoid01/Chess_AI/blob/main/res/photos/chessPhoto.png?raw=true)
 
 ### How to use it
 
