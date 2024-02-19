@@ -14,6 +14,8 @@ Board::Board(float posX, float posY, float width, float height, const Renderer &
                 std::make_unique<Square>(row, col, posX + col * squareWidth, posY + row * squareHeight, squareWidth, squareHeight, r);
         }
     }
+
+    resultText = std::make_unique<Object>(r, TextureName::CHECKMATE, posX + squareWidth * 3.f, posY + height, squareWidth * 2, squareWidth);
 }
 
 Board::~Board()
@@ -31,6 +33,9 @@ void Board::Render()
             squares[row][col]->Render();
         }
     }
+
+    if (renderResult)
+        resultText->Render();
 }
 
 void Board::Clear()
@@ -90,6 +95,7 @@ void Board::Translate(float x, float y)
             squares[row][col]->Translate(x, y);
         }
     }
+    resultText->Translate(x, y);
 }
 void Board::SetScale(float x, float y)
 {
@@ -106,6 +112,7 @@ void Board::SetScale(float x, float y)
             squares[row][col]->SetScale(x, y);
         }
     }
+    resultText->SetScale(x, y);
 }
 void Board::SetPosition(float x, float y)
 {
@@ -118,6 +125,7 @@ void Board::SetPosition(float x, float y)
             squares[row][col]->SetPosition(x + col * squareWidth, y + row * squareHeight);
         }
     }
+    resultText->SetPosition(GetX() + squareWidth * 3.f, GetY() + GetHeight());
 }
 void Board::SetCenter(float x, float y)
 {
@@ -130,6 +138,7 @@ void Board::SetCenter(float x, float y)
             squares[row][col]->SetPosition(GetX() + col * squareWidth, GetY() + row * squareHeight);
         }
     }
+    resultText->SetPosition(GetX() + squareWidth * 3.f, GetY() + GetHeight());
 }
 
 void Board::ClickEvent(float mouseX, float mouseY)
@@ -215,6 +224,8 @@ void Board::MovePiece(Move move)
     squares[move.iniRow][move.iniCol]->Clear();
 
     chessEngine.MakeMove(move);
+    
+    checkResult();
 }
 
 void Board::SelectLastMove()
@@ -251,4 +262,22 @@ void Board::UnSelectBoard()
         }
     }
     SelectLastMove();
+}
+
+void Board::checkResult()
+{
+    if (chessEngine.IsCheckMate())
+    {
+        renderResult = true;
+        resultText->SetTexture(TextureName::CHECKMATE);
+    }
+    else if (chessEngine.IsStaleMate())
+    {
+        renderResult = true;
+        resultText->SetTexture(TextureName::STALEMATE);
+    }
+    else
+    {
+        renderResult = false;
+    }
 }

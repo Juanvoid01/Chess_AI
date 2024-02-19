@@ -17,7 +17,9 @@ enum class TextureName
     WROOK = 9,
     BROOK = 10,
     WBISHOP = 11,
-    BBISHOP = 12
+    BBISHOP = 12,
+    CHECKMATE = 13,
+    STALEMATE = 14
 };
 
 class TextureManager
@@ -34,8 +36,8 @@ public:
     inline const Texture &GetTexture(TextureName name) const { return *textureArray[IndexOf(name)]; }
 
 private:
-    unsigned int numTextures = 13;
-    std::unique_ptr<Texture> textureArray[13];
+    unsigned int numTextures = 15;
+    std::unique_ptr<Texture> textureArray[15];
     inline int IndexOf(TextureName name) const { return static_cast<int>(name); }
 
     void InitializeTextures()
@@ -53,5 +55,7 @@ private:
         textureArray[IndexOf(TextureName::BROOK)] = std::make_unique<Texture>("res/textures/bR.png");
         textureArray[IndexOf(TextureName::WBISHOP)] = std::make_unique<Texture>("res/textures/wB.png");
         textureArray[IndexOf(TextureName::BBISHOP)] = std::make_unique<Texture>("res/textures/bB.png");
+        textureArray[IndexOf(TextureName::CHECKMATE)] = std::make_unique<Texture>("res/textures/checkmate.png");
+        textureArray[IndexOf(TextureName::STALEMATE)] = std::make_unique<Texture>("res/textures/stalemate.png");
     }
 };

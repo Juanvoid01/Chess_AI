@@ -22,6 +22,8 @@ public:
     void ClickEvent(float mouseX, float mouseY);
 
 private:
+    std::unique_ptr<Object> resultText;
+    bool renderResult = false;
     std::array<std::array<std::unique_ptr<Square>, 8>, 8> squares;
     float squareWidth;
     float squareHeight;
@@ -50,6 +52,8 @@ private:
 
     inline void UnSelectPos(int row, int col) { return squares[row][col]->UnSelect(); }
 
+    void checkResult();
+    
     void SelectLastMove();
     
     void UnSelectBoard();
