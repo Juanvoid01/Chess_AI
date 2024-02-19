@@ -57,6 +57,8 @@ private:
     inline bool CapturablePos(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color != color; }
     inline void ClearPos(short row, short col) { pieces[row][col] = {PieceType::EMPTY, PieceColor::WHITE}; }
     inline bool isEnemyKing(short row, short col, PieceColor color) const { return pieces[row][col].type == PieceType::KING && pieces[row][col].color != color; }
+    inline bool isEnemyPiece(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color != color; }
+    inline bool isFriendlyPiece(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color == color; }
 
     void updateDangers();
     void UpdatePawnDangers(short row, short col, PieceColor color);
@@ -77,7 +79,6 @@ private:
     bool IsSlider(short row, short col) const;
 
     void UpdateCheck();
-    void UpdatePins();
     bool IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short destRow, short destCol) const;
 
     inline void AddChecker(short row, short col)

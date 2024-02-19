@@ -41,8 +41,8 @@ void ChessEngine::SetInitialPosition()
     pieces[7][2] = {PieceType::BISHOP, PieceColor::BLACK};
     pieces[7][3] = {PieceType::QUEEN, PieceColor::BLACK};
     pieces[7][4] = {PieceType::KING, PieceColor::BLACK};
-    kingRowW = 7;
-    kingColW = 4;
+    kingRowB = 7;
+    kingColB = 4;
 
     pieces[7][5] = {PieceType::BISHOP, PieceColor::BLACK};
     pieces[7][6] = {PieceType::KNIGHT, PieceColor::BLACK};
@@ -168,6 +168,9 @@ void ChessEngine::UpdateRookDangers(short row, short col, PieceColor color)
 {
     bool attack = true;
     bool danger = true;
+    bool pin = false;
+    short rowPinned;
+    short colPinned;
 
     for (short i = row + 1; i < 8; i++)
     {
@@ -190,15 +193,34 @@ void ChessEngine::UpdateRookDangers(short row, short col, PieceColor color)
             {
                 danger = false;
             }
+
+            if (pin && isEnemyKing(i, col, color))
+            {
+                pin = false;
+                SetPinnedPiece(rowPinned, colPinned, true);
+            }
+            else if (pin && !PosEmpty(i, col))
+            {
+                pin = false;
+            }
+
+            if (!pin && attack && isEnemyPiece(i, col, color))
+            {
+                pin = true;
+                rowPinned = i;
+                colPinned = col;
+            }
+
             attack = false;
         }
 
-        if (!attack && !danger)
+        if (!attack && !danger && !pin)
             break;
     }
 
     attack = true;
     danger = true;
+    pin = false;
 
     for (short i = row - 1; i >= 0; i--)
     {
@@ -221,15 +243,34 @@ void ChessEngine::UpdateRookDangers(short row, short col, PieceColor color)
             {
                 danger = false;
             }
+
+            if (pin && isEnemyKing(i, col, color))
+            {
+                pin = false;
+                SetPinnedPiece(rowPinned, colPinned, true);
+            }
+            else if (pin && !PosEmpty(i, col))
+            {
+                pin = false;
+            }
+
+            if (!pin && attack && isEnemyPiece(i, col, color))
+            {
+                pin = true;
+                rowPinned = i;
+                colPinned = col;
+            }
+
             attack = false;
         }
 
-        if (!attack && !danger)
+        if (!attack && !danger && !pin)
             break;
     }
 
     attack = true;
     danger = true;
+    pin = false;
 
     for (short i = col + 1; i < 8; i++)
     {
@@ -253,15 +294,34 @@ void ChessEngine::UpdateRookDangers(short row, short col, PieceColor color)
             {
                 danger = false;
             }
+
+            if (pin && isEnemyKing(row, i, color))
+            {
+                pin = false;
+                SetPinnedPiece(rowPinned, colPinned, true);
+            }
+            else if (pin && !PosEmpty(row, i))
+            {
+                pin = false;
+            }
+
+            if (!pin && attack && isEnemyPiece(row, i, color))
+            {
+                pin = true;
+                rowPinned = row;
+                colPinned = i;
+            }
+
             attack = false;
         }
 
-        if (!attack && !danger)
+        if (!attack && !danger && !pin)
             break;
     }
 
     attack = true;
     danger = true;
+    pin = false;
 
     for (short i = col - 1; i >= 0; i--)
     {
@@ -284,10 +344,28 @@ void ChessEngine::UpdateRookDangers(short row, short col, PieceColor color)
             {
                 danger = false;
             }
+
+            if (pin && isEnemyKing(row, i, color))
+            {
+                pin = false;
+                SetPinnedPiece(rowPinned, colPinned, true);
+            }
+            else if (pin && !PosEmpty(row, i))
+            {
+                pin = false;
+            }
+
+            if (!pin && attack && isEnemyPiece(row, i, color))
+            {
+                pin = true;
+                rowPinned = row;
+                colPinned = i;
+            }
+
             attack = false;
         }
 
-        if (!attack && !danger)
+        if (!attack && !danger && !pin)
             break;
     }
 }
@@ -401,6 +479,10 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
 
     bool danger = true;
     bool attack = true;
+    bool pin = false;
+    short rowPinned;
+    short colPinned;
+
     short i = row + 1, j = col + 1;
     while (i < 8 && j < 8)
     {
@@ -412,17 +494,36 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
 
         if (!PosEmpty(i, j))
         {
-            attack = false;
             if (isEnemyKing(i, j, color))
             {
-                AddChecker(row, col);
+                if (attack)
+                    AddChecker(row, col);
             }
             else
             {
                 danger = false;
             }
+
+            if (pin && isEnemyKing(i, j, color))
+            {
+                pin = false;
+                SetPinnedPiece(rowPinned, colPinned, true);
+            }
+            else if (pin && !PosEmpty(i, j))
+            {
+                pin = false;
+            }
+
+            if (!pin && attack && isEnemyPiece(i, j, color))
+            {
+                pin = true;
+                rowPinned = i;
+                colPinned = j;
+            }
+
+            attack = false;
         }
-        if (!attack && !danger)
+        if (!attack && !danger && !pin)
             break;
         i++;
         j++;
@@ -430,6 +531,7 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
 
     danger = true;
     attack = true;
+    pin = false;
     i = row - 1, j = col - 1;
     while (i >= 0 && j >= 0)
     {
@@ -441,17 +543,37 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
 
         if (!PosEmpty(i, j))
         {
-            attack = false;
+
             if (isEnemyKing(i, j, color))
             {
-                AddChecker(row, col);
+                if (attack)
+                    AddChecker(row, col);
             }
             else
             {
                 danger = false;
             }
+
+            if (pin && isEnemyKing(i, j, color))
+            {
+                pin = false;
+                SetPinnedPiece(rowPinned, colPinned, true);
+            }
+            else if (pin && !PosEmpty(i, j))
+            {
+                pin = false;
+            }
+
+            if (!pin && attack && isEnemyPiece(i, j, color))
+            {
+                pin = true;
+                rowPinned = i;
+                colPinned = j;
+            }
+
+            attack = false;
         }
-        if (!attack && !danger)
+        if (!attack && !danger && !pin)
             break;
         i--;
         j--;
@@ -459,6 +581,7 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
 
     danger = true;
     attack = true;
+    pin = false;
     i = row + 1, j = col - 1;
     while (i < 8 && j >= 0)
     {
@@ -470,17 +593,37 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
 
         if (!PosEmpty(i, j))
         {
-            attack = false;
+
             if (isEnemyKing(i, j, color))
             {
-                AddChecker(row, col);
+                if (attack)
+                    AddChecker(row, col);
             }
             else
             {
                 danger = false;
             }
+
+            if (pin && isEnemyKing(i, j, color))
+            {
+                pin = false;
+                SetPinnedPiece(rowPinned, colPinned, true);
+            }
+            else if (pin && !PosEmpty(i, j))
+            {
+                pin = false;
+            }
+
+            if (!pin && attack && isEnemyPiece(i, j, color))
+            {
+                pin = true;
+                rowPinned = i;
+                colPinned = j;
+            }
+
+            attack = false;
         }
-        if (!attack && !danger)
+        if (!attack && !danger && !pin)
             break;
         i++;
         j--;
@@ -488,6 +631,7 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
 
     attack = true;
     danger = true;
+    pin = false;
     i = row - 1, j = col + 1;
     while (i >= 0 && j < 8)
     {
@@ -499,17 +643,36 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
 
         if (!PosEmpty(i, j))
         {
-            attack = false;
             if (isEnemyKing(i, j, color))
             {
-                AddChecker(row, col);
+                if (attack)
+                    AddChecker(row, col);
             }
             else
             {
                 danger = false;
             }
+
+            if (pin && isEnemyKing(i, j, color))
+            {
+                pin = false;
+                SetPinnedPiece(rowPinned, colPinned, true);
+            }
+            else if (pin && !PosEmpty(i, j))
+            {
+                pin = false;
+            }
+
+            if (!pin && attack && isEnemyPiece(i, j, color))
+            {
+                pin = true;
+                rowPinned = i;
+                colPinned = j;
+            }
+
+            attack = false;
         }
-        if (!attack && !danger)
+        if (!attack && !danger && !pin)
             break;
         i--;
         j++;
@@ -535,8 +698,6 @@ void ChessEngine::updateLegalMoves()
     updateDangers();
 
     UpdateCheck();
-
-    UpdatePins();
 
     if (checkersNum >= 2) // when double check only king moves allowed
         return;
@@ -1053,122 +1214,9 @@ void ChessEngine::UpdateCheck()
     }
 }
 
-void ChessEngine::UpdatePins()
-{
-    /*short kingRow = turn == PieceColor::WHITE ? kingRowW : kingRowB;
-    short kingCol = turn == PieceColor::WHITE ? kingColW : kingColB;
-
-    // horizontal moves
-
-    for (short i = kingRow + 1; i < 8; i++)
-    {
-        if (!PosEmpty(i, kingCol) && pieces[i][kingCol].color == turn)
-        {
-            if (GetAttackedSquare(i, kingCol))
-                SetPinnedPiece(i, kingCol, true);
-            break;
-        }
-    }
-
-    for (short i = kingRow - 1; i >= 0; i--)
-    {
-        if (!PosEmpty(i, kingCol) && pieces[i][kingCol].color == turn)
-        {
-            if (GetAttackedSquare(i, kingCol))
-                SetPinnedPiece(i, kingCol, true);
-            break;
-        }
-    }
-
-    for (short i = kingCol + 1; i < 8; i++)
-    {
-        if (!PosEmpty(kingRow, i) && pieces[kingRow][i].color == turn)
-        {
-            if (GetAttackedSquare(kingRow, i))
-                SetPinnedPiece(kingRow, i, true);
-            break;
-        }
-    }
-
-    for (short i = kingCol - 1; i >= 0; i--)
-    {
-        if (!PosEmpty(kingRow, i) && pieces[kingRow][i].color == turn)
-        {
-            if (GetAttackedSquare(kingRow, i))
-                SetPinnedPiece(kingRow, i, true);
-            break;
-        }
-    }
-
-    // diagonal moves
-
-    short i = kingRow + 1, j = kingCol + 1;
-    while (i < 8 && j < 8)
-    {
-        if (!ValidPos(i, j))
-            break;
-
-        if (!PosEmpty(i, j) && pieces[i][j].color == turn)
-        {
-            if (GetAttackedSquare(i, j))
-                SetPinnedPiece(i, j, true);
-            break;
-        }
-        i++;
-        j++;
-    }
-
-    i = kingRow - 1, j = kingCol - 1;
-    while (i >= 0 && j >= 0)
-    {
-        if (!ValidPos(i, j))
-            break;
-
-        if (!PosEmpty(i, j) && pieces[i][j].color == turn)
-        {
-            if (GetAttackedSquare(i, j))
-                SetPinnedPiece(i, j, true);
-            break;
-        }
-        i--;
-        j--;
-    }
-
-    i = kingRow + 1, j = kingCol - 1;
-    while (i < 8 && j >= 0)
-    {
-        if (!ValidPos(i, j))
-            break;
-
-        if (!PosEmpty(i, j) && pieces[i][j].color == turn)
-        {
-            if (GetAttackedSquare(i, j))
-                SetPinnedPiece(i, j, true);
-            break;
-        }
-        i++;
-        j--;
-    }
-
-    i = kingRow - 1, j = kingCol + 1;
-    while (i >= 0 && j < 8)
-    {
-        if (!ValidPos(i, j))
-            break;
-
-        if (!PosEmpty(i, j) && pieces[i][j].color == turn)
-        {
-            if (GetAttackedSquare(i, j))
-                SetPinnedPiece(i, j, true);
-            break;
-        }
-        i--;
-        j++;
-    }*/
-}
-
 bool ChessEngine::IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short destRow, short destCol) const
 {
+
     if (!GetPinnedPiece(pieceRow, pieceCol))
         return true; // piece is not pinned
 
@@ -1192,13 +1240,16 @@ bool ChessEngine::IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short d
             isLegal = true;
         }
     }
-    else // diagonak pin
+    else // diagonal pin
     {
-        /*if (kingCol - kingRow == destCol - destRow)
-        {
-            isLegal = true;
-        }*/
+
+        // Calculate the slope of the line
+        int numerator = (kingCol - pieceCol) * (destRow - pieceRow);
+        int denominator = (kingRow - pieceRow);
+
+        // Check if the y-coordinate of the destPos on the line matches the y-coordinate of the destPos
+        isLegal = (numerator % denominator == 0) && (numerator == (destCol - pieceCol) * denominator);
     }
 
-    return false;
+    return isLegal;
 }
