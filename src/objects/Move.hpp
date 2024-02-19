@@ -48,4 +48,19 @@ struct PieceInfo
 {
     PieceType type;
     PieceColor color;
+
+    bool operator==(const PieceInfo &other) const
+    {
+        return this->type == other.type && this->color == other.color;
+    }
+
+    bool operator==(const PieceInfo &&other) const
+    {
+        return this->type == other.type && this->color == other.color;
+    }
+
+    bool operator!=(const PieceInfo &&other) const
+    {
+        return !(*this == other);
+    }
 };

@@ -1217,18 +1217,19 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
         return;
     }
 
-    if (color == PieceColor::WHITE && kingMovedW)
+    if (color == PieceColor::WHITE && (kingMovedW || pieces[0][4] != PieceInfo{PieceType::KING, color}))
     {
         return;
     }
-    else if (color == PieceColor::BLACK && kingMovedB)
+
+    if (color == PieceColor::BLACK && (kingMovedB || pieces[7][4] != PieceInfo{PieceType::KING, color}))
     {
         return;
     }
 
     if (color == PieceColor::WHITE)
     {
-        if (!rookKMovedW)
+        if (!rookKMovedW && pieces[0][7] == PieceInfo{PieceType::ROOK, color})
         {
             if (PosEmpty(0, 5) && PosEmpty(0, 6))
             {
@@ -1239,7 +1240,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
             }
         }
 
-        if (!rookQMovedW)
+        if (!rookQMovedW && pieces[0][0] == PieceInfo{PieceType::ROOK, color})
         {
             if (PosEmpty(0, 1) && PosEmpty(0, 2) && PosEmpty(0, 3))
             {
@@ -1252,7 +1253,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
     }
     else
     {
-        if (!rookKMovedB)
+        if (!rookKMovedB && pieces[7][7] == PieceInfo{PieceType::ROOK, color})
         {
             if (PosEmpty(7, 5) && PosEmpty(7, 6))
             {
@@ -1263,7 +1264,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
             }
         }
 
-        if (!rookQMovedB)
+        if (!rookQMovedB && pieces[7][0] == PieceInfo{PieceType::ROOK, color})
         {
             if (PosEmpty(7, 1) && PosEmpty(7, 2) && PosEmpty(7, 3))
             {
@@ -1413,10 +1414,10 @@ bool ChessEngine::isValidEnPassant(short pieceRow, short pieceCol, short destRow
             {
                 if (!PosEmpty(kingRow, i))
                 {
-                    if (IsSlider(kingRow, i) && isEnemyPiece(kingRow, i, pieceColor))
-                    {
-                        validMove = false;
-                    }
+
+                    validMove = !(isEnemyPiece(kingRow, i, pieceColor) && (pieces[kingRow][i].type == PieceType::QUEEN ||
+                                                                           pieces[kingRow][i].type == PieceType::ROOK));
+
                     stop = true;
                 }
             }
