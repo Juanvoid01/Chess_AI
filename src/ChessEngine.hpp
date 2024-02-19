@@ -88,7 +88,8 @@ private:
 
     void UpdateCheck();
     bool IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short destRow, short destCol) const;
-
+    bool isValidEnPassant(short pieceRow, short pieceCol, short destRow, short destCol) const;
+    
     inline void AddChecker(short row, short col)
     {
         checkersNum++;

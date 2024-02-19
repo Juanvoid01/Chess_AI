@@ -216,15 +216,16 @@ void Board::MovePiece(Move move)
                                                         GetPColor(move.iniRow, move.iniCol));
         squares[move.endRow][0]->Clear();
     }
-    else
+    else if (move.type == MoveType::ENPASSANT)
     {
+        squares[move.iniRow][move.endCol]->Clear();
     }
     squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
                                                 GetPColor(move.iniRow, move.iniCol));
     squares[move.iniRow][move.iniCol]->Clear();
 
     chessEngine.MakeMove(move);
-    
+
     checkResult();
 }
 

@@ -81,9 +81,11 @@ void ChessEngine::MakeMove(Move move)
         pieces[move.endRow][move.endCol + 1] = {PieceType::ROOK, turn};
         ClearPos(move.endRow, 0);
     }
-    else
+    else if (move.type == MoveType::ENPASSANT)
     {
+        ClearPos(move.iniRow, move.endCol);
     }
+
     pieces[move.endRow][move.endCol] = pieces[move.iniRow][move.iniCol];
     ClearPos(move.iniRow, move.iniCol);
 
@@ -128,8 +130,8 @@ void ChessEngine::MakeMove(Move move)
         turn = PieceColor::WHITE;
     }
 
-    updateLegalMoves();
     lastMove = move;
+    updateLegalMoves();
 }
 
 bool ChessEngine::IsCheckMate() const
@@ -793,7 +795,7 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
     short dir = color == PieceColor::WHITE ? +1 : -1;
     short startRow = color == PieceColor::WHITE ? 1 : 6;
     short prePromotionRow = color == PieceColor::WHITE ? 6 : 1;
-    short enPassantRow = color == PieceColor::WHITE ? 5 : 4;
+    short enPassantRow = color == PieceColor::WHITE ? 4 : 3;
 
     short nextRow = row + dir;
     // pawn push
@@ -862,6 +864,19 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
     }
     else if (row == enPassantRow)
     {
+        if (lastMove.type == MoveType::DOUBLEPAWNPUSH && lastMove.endRow == enPassantRow)
+        {
+            if (lastMove.endCol == col + 1)
+            {
+                if (GetCaptureMask(row, col + 1) && isValidEnPassant(row, col, nextRow, col + 1))
+                    legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::ENPASSANT));
+            }
+            else if (lastMove.endCol == col - 1)
+            {
+                if (GetCaptureMask(row, col - 1) && isValidEnPassant(row, col, nextRow, col - 1))
+                    legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::ENPASSANT));
+            }
+        }
     }
 }
 
@@ -1197,7 +1212,7 @@ void ChessEngine::UpdateQueenMoves(short row, short col, PieceColor color)
 
 void ChessEngine::UpdateCastleMoves(PieceColor color)
 {
-    if (checkersNum > 0) //check
+    if (checkersNum > 0) // check
     {
         return;
     }
@@ -1370,4 +1385,44 @@ bool ChessEngine::IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short d
     }
 
     return isLegal;
+}
+
+bool ChessEngine::isValidEnPassant(short pieceRow, short pieceCol, short destRow, short destCol) const
+{
+    if (!IsPinnedPieceLegalMove(pieceRow, pieceCol, destRow, destCol))
+    {
+        return false;
+    }
+
+    bool validMove = true;
+
+    PieceColor pieceColor = pieces[pieceRow][pieceCol].color;
+
+    short kingRow = pieceColor == PieceColor::WHITE ? kingRowW : kingRowB;
+    short kingCol = pieceColor == PieceColor::WHITE ? kingColW : kingColB;
+    short enPassantRow = pieceColor == PieceColor::WHITE ? 4 : 3;
+
+    if (kingRow == enPassantRow)
+    {
+        short dir = kingCol < pieceCol ? +1 : -1;
+        int i = kingCol + dir;
+        bool stop = false;
+        while (!stop && ValidPos(kingRow, i))
+        {
+            if (i != destCol && i != pieceCol)
+            {
+                if (!PosEmpty(kingRow, i))
+                {
+                    if (IsSlider(kingRow, i) && isEnemyPiece(kingRow, i, pieceColor))
+                    {
+                        validMove = false;
+                    }
+                    stop = true;
+                }
+            }
+            i += dir;
+        }
+    }
+
+    return validMove;
 }
