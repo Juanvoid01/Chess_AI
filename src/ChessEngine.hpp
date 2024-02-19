@@ -40,6 +40,13 @@ private:
     short kingRowW = 0, kingColW = 4;
     short kingRowB = 7, kingColB = 4;
 
+    bool kingMovedW = false;
+    bool kingMovedB = false;
+    bool rookKMovedW = false;
+    bool rookQMovedW = false;
+    bool rookKMovedB = false;
+    bool rookQMovedB = false;
+
     inline void SetAttackedSquare(short row, short col, bool value) { attackedSquares.set(row * 8 + col, value); }
     inline void SetkingDangerSquare(short row, short col, bool value) { kingDangerSquares.set(row * 8 + col, value); }
     inline void SetCaptureMask(short row, short col, bool value) { captureMask.set(row * 8 + col, value); }
@@ -75,6 +82,7 @@ private:
     void UpdateKingMoves(short row, short col, PieceColor color);
     void UpdateBishopMoves(short row, short col, PieceColor color);
     void UpdateQueenMoves(short row, short col, PieceColor color);
+    void UpdateCastleMoves(PieceColor color);
 
     bool IsSlider(short row, short col) const;
 

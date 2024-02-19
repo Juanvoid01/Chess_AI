@@ -193,9 +193,25 @@ void Board::MovePiece(Move move)
     if (move.iniRow == move.endRow && move.iniCol == move.endCol)
         return;
 
+    if (move.type == MoveType::KINGCASTLE)
+    {
+
+        squares[move.endRow][move.endCol - 1]->PutPiece(PieceType::ROOK,
+                                                        GetPColor(move.iniRow, move.iniCol));
+        squares[move.endRow][7]->Clear();
+    }
+    else if (move.type == MoveType::QUEENCASTLE)
+    {
+
+        squares[move.endRow][move.endCol + 1]->PutPiece(PieceType::ROOK,
+                                                        GetPColor(move.iniRow, move.iniCol));
+        squares[move.endRow][0]->Clear();
+    }
+    else
+    {
+    }
     squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
                                                 GetPColor(move.iniRow, move.iniCol));
-
     squares[move.iniRow][move.iniCol]->Clear();
 
     chessEngine.MakeMove(move);
@@ -205,11 +221,24 @@ void Board::SelectLastMove()
 {
     Move move = chessEngine.GetLastMove();
 
-    if(move.iniCol == -1)
+    if (move.iniCol == -1)
         return;
 
-    SelectAsLastMove(move.iniRow,move.iniCol);
-    SelectAsLastMove(move.endRow,move.endCol);
+    if (move.type == MoveType::KINGCASTLE)
+    {
+        SelectAsLastMove(move.iniRow, move.endCol - 1);
+        SelectAsLastMove(move.endRow, move.endCol);
+    }
+    else if (move.type == MoveType::QUEENCASTLE)
+    {
+        SelectAsLastMove(move.iniRow, move.endCol + 1);
+        SelectAsLastMove(move.endRow, move.endCol);
+    }
+    else
+    {
+        SelectAsLastMove(move.iniRow, move.iniCol);
+        SelectAsLastMove(move.endRow, move.endCol);
+    }
 }
 
 void Board::UnSelectBoard()

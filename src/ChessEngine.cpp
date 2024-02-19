@@ -47,6 +47,13 @@ void ChessEngine::SetInitialPosition()
     pieces[7][5] = {PieceType::BISHOP, PieceColor::BLACK};
     pieces[7][6] = {PieceType::KNIGHT, PieceColor::BLACK};
     pieces[7][7] = {PieceType::ROOK, PieceColor::BLACK};
+
+    kingMovedW = false;
+    kingMovedB = false;
+    rookKMovedW = false;
+    rookQMovedW = false;
+    rookKMovedB = false;
+    rookQMovedB = false;
 };
 
 void ChessEngine::ClearBoard()
@@ -62,6 +69,21 @@ void ChessEngine::ClearBoard()
 
 void ChessEngine::MakeMove(Move move)
 {
+
+    if (move.type == MoveType::KINGCASTLE)
+    {
+        pieces[move.endRow][move.endCol - 1] = {PieceType::ROOK, turn};
+        ClearPos(move.endRow, 7);
+    }
+    else if (move.type == MoveType::QUEENCASTLE)
+    {
+
+        pieces[move.endRow][move.endCol + 1] = {PieceType::ROOK, turn};
+        ClearPos(move.endRow, 0);
+    }
+    else
+    {
+    }
     pieces[move.endRow][move.endCol] = pieces[move.iniRow][move.iniCol];
     ClearPos(move.iniRow, move.iniCol);
 
@@ -71,7 +93,18 @@ void ChessEngine::MakeMove(Move move)
         {
             kingRowW = move.endRow;
             kingColW = move.endCol;
+            kingMovedW = true;
         }
+
+        if (move.type == MoveType::KINGCASTLE)
+        {
+            rookKMovedW = true;
+        }
+        else if (move.type == MoveType::QUEENCASTLE)
+        {
+            rookQMovedW = true;
+        }
+
         turn = PieceColor::BLACK;
     }
     else
@@ -80,7 +113,18 @@ void ChessEngine::MakeMove(Move move)
         {
             kingRowB = move.endRow;
             kingColB = move.endCol;
+            kingMovedB = true;
         }
+
+        if (move.type == MoveType::KINGCASTLE)
+        {
+            rookKMovedB = true;
+        }
+        else if (move.type == MoveType::QUEENCASTLE)
+        {
+            rookQMovedB = true;
+        }
+
         turn = PieceColor::WHITE;
     }
 
@@ -101,32 +145,36 @@ bool ChessEngine::IsStaleMate() const
 void ChessEngine::updateDangers()
 {
 
+    PieceColor color;
+
     for (short row = 0; row < 8; row++)
     {
         for (short col = 0; col < 8; col++)
         {
-            if (PosEmpty(row, col) || pieces[row][col].color == turn)
+            color = pieces[row][col].color;
+
+            if (PosEmpty(row, col) || color == turn)
                 continue;
 
             switch (pieces[row][col].type)
             {
             case PieceType::PAWN:
-                UpdatePawnDangers(row, col, pieces[row][col].color);
+                UpdatePawnDangers(row, col, color);
                 break;
             case PieceType::KNIGHT:
-                UpdateKnightDangers(row, col, pieces[row][col].color);
+                UpdateKnightDangers(row, col, color);
                 break;
             case PieceType::KING:
-                UpdateKingDangers(row, col, pieces[row][col].color);
+                UpdateKingDangers(row, col, color);
                 break;
             case PieceType::QUEEN:
-                UpdateQueenDangers(row, col, pieces[row][col].color);
+                UpdateQueenDangers(row, col, color);
                 break;
             case PieceType::ROOK:
-                UpdateRookDangers(row, col, pieces[row][col].color);
+                UpdateRookDangers(row, col, color);
                 break;
             case PieceType::BISHOP:
-                UpdateBishopDangers(row, col, pieces[row][col].color);
+                UpdateBishopDangers(row, col, color);
                 break;
             default:
                 break;
@@ -702,32 +750,36 @@ void ChessEngine::updateLegalMoves()
     if (checkersNum >= 2) // when double check only king moves allowed
         return;
 
+    PieceColor color;
+
     for (short row = 0; row < 8; row++)
     {
         for (short col = 0; col < 8; col++)
         {
-            if (PosEmpty(row, col) || pieces[row][col].color != turn)
+            color = pieces[row][col].color;
+            if (PosEmpty(row, col) || color != turn)
                 continue;
 
             switch (pieces[row][col].type)
             {
             case PieceType::PAWN:
-                UpdatePawnMoves(row, col, pieces[row][col].color);
+                UpdatePawnMoves(row, col, color);
                 break;
             case PieceType::KNIGHT:
-                UpdateKnightMoves(row, col, pieces[row][col].color);
+                UpdateKnightMoves(row, col, color);
                 break;
             case PieceType::KING:
-                UpdateKingMoves(row, col, pieces[row][col].color);
+                UpdateKingMoves(row, col, color);
+                UpdateCastleMoves(color);
                 break;
             case PieceType::QUEEN:
-                UpdateQueenMoves(row, col, pieces[row][col].color);
+                UpdateQueenMoves(row, col, color);
                 break;
             case PieceType::ROOK:
-                UpdateRookMoves(row, col, pieces[row][col].color);
+                UpdateRookMoves(row, col, color);
                 break;
             case PieceType::BISHOP:
-                UpdateBishopMoves(row, col, pieces[row][col].color);
+                UpdateBishopMoves(row, col, color);
                 break;
             default:
                 break;
@@ -1141,6 +1193,72 @@ void ChessEngine::UpdateQueenMoves(short row, short col, PieceColor color)
 {
     UpdateRookMoves(row, col, color);
     UpdateBishopMoves(row, col, color);
+}
+
+void ChessEngine::UpdateCastleMoves(PieceColor color)
+{
+    if (checkersNum > 0) //check
+    {
+        return;
+    }
+
+    if (color == PieceColor::WHITE && kingMovedW)
+    {
+        return;
+    }
+    else if (color == PieceColor::BLACK && kingMovedB)
+    {
+        return;
+    }
+
+    if (color == PieceColor::WHITE)
+    {
+        if (!rookKMovedW)
+        {
+            if (PosEmpty(0, 5) && PosEmpty(0, 6))
+            {
+                if (!GetkingDangerSquare(0, 5) && !GetkingDangerSquare(0, 6))
+                {
+                    legalMoves.emplace_back(Move(kingRowW, kingColW, 0, 6, MoveType::KINGCASTLE));
+                }
+            }
+        }
+
+        if (!rookQMovedW)
+        {
+            if (PosEmpty(0, 1) && PosEmpty(0, 2) && PosEmpty(0, 3))
+            {
+                if (!GetkingDangerSquare(0, 2) && !GetkingDangerSquare(0, 3))
+                {
+                    legalMoves.emplace_back(Move(kingRowW, kingColW, 0, 2, MoveType::QUEENCASTLE));
+                }
+            }
+        }
+    }
+    else
+    {
+        if (!rookKMovedB)
+        {
+            if (PosEmpty(7, 5) && PosEmpty(7, 6))
+            {
+                if (!GetkingDangerSquare(7, 5) && !GetkingDangerSquare(7, 6))
+                {
+                    legalMoves.emplace_back(Move(kingRowB, kingColB, 7, 6, MoveType::KINGCASTLE));
+                }
+            }
+        }
+
+        if (!rookQMovedB)
+        {
+            if (PosEmpty(7, 1) && PosEmpty(7, 2) && PosEmpty(7, 3))
+            {
+                if (!GetkingDangerSquare(7, 2) && !GetkingDangerSquare(7, 3))
+                {
+                    legalMoves.emplace_back(Move(kingRowB, kingColB, 7, 2, MoveType::QUEENCASTLE));
+                }
+            }
+        }
+    }
 }
 
 bool ChessEngine::IsSlider(short row, short col) const
