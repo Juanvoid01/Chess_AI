@@ -12,8 +12,7 @@ public:
     void Render();
 
     void Clear();
-    void PutInitialPosition();
-
+    void LoadFEN(const std::string& FEN);
     void Translate(float x, float y);
     void SetScale(float x, float y);
     void SetPosition(float x, float y);
@@ -33,6 +32,7 @@ private:
 
     ChessEngine chessEngine;
 
+    void CopyBoardFromEngine();
     void MovePiece(Move move);
 
     void SelectPiece(int row, int col);

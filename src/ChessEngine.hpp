@@ -6,11 +6,12 @@
 #include <array>
 
 #define MAX_THEORETICAL_MOVES_PER_POSITION 218
+#define FEN_START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 class ChessEngine
 {
 public:
-    ChessEngine();
+    ChessEngine(const std::string &FEN = FEN_START_POS);
     ~ChessEngine() {}
 
     inline const std::vector<Move> &GetLegalMoves() const { return legalMoves; }
@@ -21,6 +22,10 @@ public:
 
     bool IsCheckMate() const;
     bool IsStaleMate() const;
+    bool IsDrawBy50move() const { return halfMoveCounter >= 100; }
+    void LoadFEN(const std::string &fen);
+    inline PieceInfo GetPiece(short row, short col) const { return pieces[row][col]; }
+    inline int GetMoveCounter() const { return moveCounter; }
 
 private:
     std::vector<Move> legalMoves;
@@ -34,18 +39,21 @@ private:
     PieceColor turn = PieceColor::WHITE;
     Move lastMove = Move(-1, -1, -1, -1, MoveType::QUIET);
 
-    short checkerRow = -1;
-    short checkerCol = -1;
-    short checkersNum = 0;
-    short kingRowW = 0, kingColW = 4;
-    short kingRowB = 7, kingColB = 4;
+    short checkerRow;
+    short checkerCol;
+    short checkersNum;
+    short kingRowW, kingColW;
+    short kingRowB, kingColB;
 
-    bool kingMovedW = false;
-    bool kingMovedB = false;
-    bool rookKMovedW = false;
-    bool rookQMovedW = false;
-    bool rookKMovedB = false;
-    bool rookQMovedB = false;
+    bool kingMovedW;
+    bool kingMovedB;
+    bool rookKMovedW;
+    bool rookQMovedW;
+    bool rookKMovedB;
+    bool rookQMovedB;
+
+    int halfMoveCounter;
+    int moveCounter;
 
     inline void SetAttackedSquare(short row, short col, bool value) { attackedSquares.set(row * 8 + col, value); }
     inline void SetkingDangerSquare(short row, short col, bool value) { kingDangerSquares.set(row * 8 + col, value); }
@@ -89,7 +97,7 @@ private:
     void UpdateCheck();
     bool IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short destRow, short destCol) const;
     bool isValidEnPassant(short pieceRow, short pieceCol, short destRow, short destCol) const;
-    
+
     inline void AddChecker(short row, short col)
     {
         checkersNum++;

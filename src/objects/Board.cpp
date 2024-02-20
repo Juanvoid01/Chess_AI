@@ -16,6 +16,7 @@ Board::Board(float posX, float posY, float width, float height, const Renderer &
     }
 
     resultText = std::make_unique<Object>(r, TextureName::CHECKMATE, posX + squareWidth * 3.f, posY + height, squareWidth * 2, squareWidth);
+    CopyBoardFromEngine();
 }
 
 Board::~Board()
@@ -49,39 +50,10 @@ void Board::Clear()
     }
 }
 
-void Board::PutInitialPosition()
+void Board::LoadFEN(const std::string &FEN)
 {
-    for (int row = 2; row < 6; row++)
-    {
-        for (int col = 0; col < 8; col++)
-        {
-            squares[row][col]->Clear();
-        }
-    }
-
-    for (int col = 0; col < 8; col++)
-    {
-        squares[1][col]->PutPiece(PieceType::PAWN, PieceColor::WHITE);
-        squares[6][col]->PutPiece(PieceType::PAWN, PieceColor::BLACK);
-    }
-
-    squares[0][0]->PutPiece(PieceType::ROOK, PieceColor::WHITE);
-    squares[0][1]->PutPiece(PieceType::KNIGHT, PieceColor::WHITE);
-    squares[0][2]->PutPiece(PieceType::BISHOP, PieceColor::WHITE);
-    squares[0][3]->PutPiece(PieceType::QUEEN, PieceColor::WHITE);
-    squares[0][4]->PutPiece(PieceType::KING, PieceColor::WHITE);
-    squares[0][5]->PutPiece(PieceType::BISHOP, PieceColor::WHITE);
-    squares[0][6]->PutPiece(PieceType::KNIGHT, PieceColor::WHITE);
-    squares[0][7]->PutPiece(PieceType::ROOK, PieceColor::WHITE);
-
-    squares[7][0]->PutPiece(PieceType::ROOK, PieceColor::BLACK);
-    squares[7][1]->PutPiece(PieceType::KNIGHT, PieceColor::BLACK);
-    squares[7][2]->PutPiece(PieceType::BISHOP, PieceColor::BLACK);
-    squares[7][3]->PutPiece(PieceType::QUEEN, PieceColor::BLACK);
-    squares[7][4]->PutPiece(PieceType::KING, PieceColor::BLACK);
-    squares[7][5]->PutPiece(PieceType::BISHOP, PieceColor::BLACK);
-    squares[7][6]->PutPiece(PieceType::KNIGHT, PieceColor::BLACK);
-    squares[7][7]->PutPiece(PieceType::ROOK, PieceColor::BLACK);
+    chessEngine.LoadFEN(FEN);
+    CopyBoardFromEngine();
 }
 
 void Board::Translate(float x, float y)
@@ -280,5 +252,16 @@ void Board::checkResult()
     else
     {
         renderResult = false;
+    }
+}
+
+void Board::CopyBoardFromEngine()
+{
+    for (int row = 0; row < 8; row++)
+    {
+        for (int col = 0; col < 8; col++)
+        {
+            squares[row][col]->PutPiece(chessEngine.GetPiece(row, col).type, chessEngine.GetPiece(row, col).color);
+        }
     }
 }

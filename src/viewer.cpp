@@ -50,8 +50,6 @@ void Viewer::run()
 
         EventManager eventManager(window, renderer, board);
 
-        board->PutInitialPosition();
-
         board->SetCenter(windowWidth / 2, windowHeight / 2);
 
         // Loop until the user closes the window

@@ -1,11 +1,11 @@
 #include "ChessEngine.hpp"
 #include <iostream>
 
-ChessEngine::ChessEngine()
+ChessEngine::ChessEngine(const std::string &FEN)
 {
 
     legalMoves.reserve(MAX_THEORETICAL_MOVES_PER_POSITION);
-    SetInitialPosition();
+    LoadFEN(FEN);
     updateLegalMoves();
 }
 
@@ -128,6 +128,20 @@ void ChessEngine::MakeMove(Move move)
         }
 
         turn = PieceColor::WHITE;
+        moveCounter++;
+    }
+
+    if (move.type == MoveType::CAPTURE)
+    {
+        halfMoveCounter = 0;
+    }
+    else if (pieces[move.endRow][move.endCol].type == PieceType::PAWN)
+    {
+        halfMoveCounter = 0;
+    }
+    else
+    {
+        halfMoveCounter++;
     }
 
     lastMove = move;
@@ -142,6 +156,155 @@ bool ChessEngine::IsCheckMate() const
 bool ChessEngine::IsStaleMate() const
 {
     return legalMoves.size() == 0 && checkersNum == 0;
+}
+
+void ChessEngine::LoadFEN(const std::string &fen)
+{
+    kingRowW = -1, kingColW = -1;
+    kingRowB = -1, kingColB = -1;
+    halfMoveCounter = 0;
+    moveCounter = 1;
+
+    short row = 7;
+    short col = 0;
+    int i = 0;
+    for (char c : fen)
+    {
+        if (c == ' ')
+        {
+            break;
+        }
+        else if (c == '/')
+        {
+            row--;
+            col = 0;
+        }
+        else if (isdigit(c))
+        {
+            short limit = col + (short)(c - '0');
+            for (col; col < limit; col++)
+            {
+                ClearPos(row, col);
+            }
+        }
+        else
+        {
+            PieceColor pieceColor = islower(c) ? PieceColor::BLACK : PieceColor::WHITE;
+            switch (c)
+            {
+            case 'P':
+            case 'p':
+                pieces[row][col] = {PieceType::PAWN, pieceColor};
+                break;
+            case 'N':
+            case 'n':
+                pieces[row][col] = {PieceType::KNIGHT, pieceColor};
+                break;
+            case 'B':
+            case 'b':
+                pieces[row][col] = {PieceType::BISHOP, pieceColor};
+                break;
+            case 'R':
+            case 'r':
+                pieces[row][col] = {PieceType::ROOK, pieceColor};
+                break;
+            case 'Q':
+            case 'q':
+                pieces[row][col] = {PieceType::QUEEN, pieceColor};
+                break;
+            case 'K':
+            case 'k':
+                pieces[row][col] = {PieceType::KING, pieceColor};
+                if (pieceColor == PieceColor::WHITE)
+                {
+                    kingRowW = row;
+                    kingColW = col;
+                }
+                else
+                {
+                    kingRowB = row;
+                    kingColB = col;
+                }
+                break;
+            default:
+                break;
+            }
+
+            col++;
+        }
+        i++;
+    }
+
+    i++;
+
+    turn = fen[i] == 'w' ? PieceColor::WHITE : PieceColor::BLACK;
+
+    i += 2;
+    char c;
+    rookKMovedW = true;
+    rookQMovedW = true;
+    kingMovedW = true;
+    rookKMovedB = true;
+    rookQMovedB = true;
+    kingMovedB = true;
+
+    while ((c = fen[i]) != ' ')
+    {
+        if (c == 'K')
+        {
+            rookKMovedW = false;
+            kingMovedW = false;
+        }
+        else if (c == 'Q')
+        {
+            rookQMovedW = false;
+            kingMovedW = false;
+        }
+        else if (c == 'k')
+        {
+            rookKMovedB = false;
+            kingMovedB = false;
+        }
+        else if (c == 'q')
+        {
+            rookQMovedB = false;
+            kingMovedB = false;
+        }
+        i++;
+    }
+
+    i++;
+
+    if (fen[i] != '-')
+    {
+        PieceColor color = fen[i + 1] == '3' ? PieceColor::WHITE : PieceColor::BLACK;
+        short startRow = color == PieceColor::WHITE ? 1 : 6;
+        short endRow = color == PieceColor::WHITE ? 3 : 4;
+
+        short col = (short)fen[i] - 'a';
+        lastMove = Move(startRow, col, endRow, col, MoveType::DOUBLEPAWNPUSH);
+    }
+    else
+    {
+        lastMove = Move(-1, -1, -1, -1, MoveType::QUIET);
+    }
+
+    i += 2;
+    halfMoveCounter = (int)(fen[i] - '0');
+    i++;
+    while ((c = fen[i]) != ' ')
+    {
+        halfMoveCounter = 10 * halfMoveCounter + (int)(fen[i] - '0');
+        i++;
+    }
+    i++;
+    moveCounter = (int)(fen[i] - '0');
+    i++;
+    while ((c = fen[i]) != '\0')
+    {
+        moveCounter = 10 * moveCounter + (int)(fen[i] - '0');
+        i++;
+    }
 }
 
 void ChessEngine::updateDangers()
