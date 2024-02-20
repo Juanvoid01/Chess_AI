@@ -8,6 +8,7 @@
 #define MAX_THEORETICAL_MOVES_PER_POSITION 218
 #define FEN_START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
+
 class ChessEngine
 {
 public:
@@ -18,14 +19,16 @@ public:
     void SetInitialPosition();
     void ClearBoard();
     void MakeMove(Move move);
-    inline Move GetLastMove() const { return lastMove; }
+    void UnMakeMove(Move move, const PosStateInfo &oldStateInfo); // Undo move if it is possible
+    inline Move GetLastMove() const { return stateInfo.lastMove; }
 
     bool IsCheckMate() const;
     bool IsStaleMate() const;
-    bool IsDrawBy50move() const { return halfMoveCounter >= 100; }
+    bool IsDrawBy50move() const { return stateInfo.halfMoveCounter >= 100; }
     void LoadFEN(const std::string &fen);
     inline PieceInfo GetPiece(short row, short col) const { return pieces[row][col]; }
-    inline int GetMoveCounter() const { return moveCounter; }
+    inline int GetMoveCounter() const { return stateInfo.moveCounter; }
+    inline const PosStateInfo& GetStateInfo() const {return stateInfo;}
 
 private:
     std::vector<Move> legalMoves;
@@ -36,16 +39,18 @@ private:
     std::bitset<64> pinnedPieces;
 
     std::array<std::array<PieceInfo, 8>, 8> pieces;
-    PieceColor turn = PieceColor::WHITE;
-    Move lastMove = Move(-1, -1, -1, -1, MoveType::QUIET);
+    
+
+    PosStateInfo stateInfo;
 
     short checkerRow;
     short checkerCol;
     short checkersNum;
+
     short kingRowW, kingColW;
     short kingRowB, kingColB;
 
-    bool kingMovedW;
+    /*bool kingMovedW;
     bool kingMovedB;
     bool rookKMovedW;
     bool rookQMovedW;
@@ -53,7 +58,12 @@ private:
     bool rookQMovedB;
 
     int halfMoveCounter;
+
     int moveCounter;
+    PieceColor turn = PieceColor::WHITE;
+    Move lastMove = Move(-1, -1, -1, -1, MoveType::QUIET);
+
+    */
 
     inline void SetAttackedSquare(short row, short col, bool value) { attackedSquares.set(row * 8 + col, value); }
     inline void SetkingDangerSquare(short row, short col, bool value) { kingDangerSquares.set(row * 8 + col, value); }

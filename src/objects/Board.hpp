@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Square.hpp"
+#include "ChessEngine.hpp"
 #include <vector>
-#include "../ChessEngine.hpp"
 
 class Board : public Object
 {

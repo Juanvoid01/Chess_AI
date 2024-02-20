@@ -48,12 +48,12 @@ void ChessEngine::SetInitialPosition()
     pieces[7][6] = {PieceType::KNIGHT, PieceColor::BLACK};
     pieces[7][7] = {PieceType::ROOK, PieceColor::BLACK};
 
-    kingMovedW = false;
-    kingMovedB = false;
-    rookKMovedW = false;
-    rookQMovedW = false;
-    rookKMovedB = false;
-    rookQMovedB = false;
+    stateInfo.kingMovedW = false;
+    stateInfo.kingMovedB = false;
+    stateInfo.rookKMovedW = false;
+    stateInfo.rookQMovedW = false;
+    stateInfo.rookKMovedB = false;
+    stateInfo.rookQMovedB = false;
 };
 
 void ChessEngine::ClearBoard()
@@ -72,13 +72,13 @@ void ChessEngine::MakeMove(Move move)
 
     if (move.type == MoveType::KINGCASTLE)
     {
-        pieces[move.endRow][move.endCol - 1] = {PieceType::ROOK, turn};
+        pieces[move.endRow][move.endCol - 1] = {PieceType::ROOK, stateInfo.turn};
         ClearPos(move.endRow, 7);
     }
     else if (move.type == MoveType::QUEENCASTLE)
     {
 
-        pieces[move.endRow][move.endCol + 1] = {PieceType::ROOK, turn};
+        pieces[move.endRow][move.endCol + 1] = {PieceType::ROOK, stateInfo.turn};
         ClearPos(move.endRow, 0);
     }
     else if (move.type == MoveType::ENPASSANT)
@@ -89,25 +89,25 @@ void ChessEngine::MakeMove(Move move)
     pieces[move.endRow][move.endCol] = pieces[move.iniRow][move.iniCol];
     ClearPos(move.iniRow, move.iniCol);
 
-    if (turn == PieceColor::WHITE)
+    if (stateInfo.turn == PieceColor::WHITE)
     {
         if (pieces[move.endRow][move.endCol].type == PieceType::KING)
         {
             kingRowW = move.endRow;
             kingColW = move.endCol;
-            kingMovedW = true;
+            stateInfo.kingMovedW = true;
         }
 
         if (move.type == MoveType::KINGCASTLE)
         {
-            rookKMovedW = true;
+            stateInfo.rookKMovedW = true;
         }
         else if (move.type == MoveType::QUEENCASTLE)
         {
-            rookQMovedW = true;
+            stateInfo.rookQMovedW = true;
         }
 
-        turn = PieceColor::BLACK;
+        stateInfo.turn = PieceColor::BLACK;
     }
     else
     {
@@ -115,36 +115,81 @@ void ChessEngine::MakeMove(Move move)
         {
             kingRowB = move.endRow;
             kingColB = move.endCol;
-            kingMovedB = true;
+            stateInfo.kingMovedB = true;
         }
 
         if (move.type == MoveType::KINGCASTLE)
         {
-            rookKMovedB = true;
+            stateInfo.rookKMovedB = true;
         }
         else if (move.type == MoveType::QUEENCASTLE)
         {
-            rookQMovedB = true;
+            stateInfo.rookQMovedB = true;
         }
 
-        turn = PieceColor::WHITE;
-        moveCounter++;
+        stateInfo.turn = PieceColor::WHITE;
+        stateInfo.moveCounter++;
     }
 
     if (move.type == MoveType::CAPTURE)
     {
-        halfMoveCounter = 0;
+        stateInfo.halfMoveCounter = 0;
     }
     else if (pieces[move.endRow][move.endCol].type == PieceType::PAWN)
     {
-        halfMoveCounter = 0;
+        stateInfo.halfMoveCounter = 0;
     }
     else
     {
-        halfMoveCounter++;
+        stateInfo.halfMoveCounter++;
     }
 
-    lastMove = move;
+    stateInfo.lastMove = move;
+    updateLegalMoves();
+}
+
+void ChessEngine::UnMakeMove(Move move, const PosStateInfo &oldStateInfo)
+{
+    PieceColor undoColor = stateInfo.turn == PieceColor::WHITE ? PieceColor::BLACK : PieceColor::WHITE;
+    if (move.type == MoveType::KINGCASTLE)
+    {
+        pieces[move.endRow][7] = {PieceType::ROOK, pieces[move.endRow][move.endCol - 1].color};
+        ClearPos(move.endRow, move.endCol - 1);
+    }
+    else if (move.type == MoveType::QUEENCASTLE)
+    {
+        pieces[move.endRow][0] = {PieceType::ROOK, pieces[move.endRow][move.endCol - 1].color};
+        ClearPos(move.endRow, move.endCol + 1);
+    }
+    else if (move.type == MoveType::ENPASSANT)
+    {
+        pieces[move.iniRow][move.endCol] = {PieceType::PAWN, undoColor};
+    }
+
+    pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
+    ClearPos(move.endRow, move.endCol);
+
+    if (undoColor == PieceColor::WHITE)
+    {
+        if (pieces[move.iniRow][move.iniCol].type == PieceType::KING)
+        {
+            kingRowW = move.iniRow;
+            kingColW = move.iniCol;           
+        }
+    }
+    else
+    {
+        if (pieces[move.endRow][move.endCol].type == PieceType::KING)
+        {
+            kingRowB = move.iniRow;
+            kingColB = move.iniCol;
+        }
+    }
+
+    // there is no way to know the lastMove and halfMoveCounter and castling rights
+
+    stateInfo = oldStateInfo;
+    
     updateLegalMoves();
 }
 
@@ -162,8 +207,8 @@ void ChessEngine::LoadFEN(const std::string &fen)
 {
     kingRowW = -1, kingColW = -1;
     kingRowB = -1, kingColB = -1;
-    halfMoveCounter = 0;
-    moveCounter = 1;
+    stateInfo.halfMoveCounter = 0;
+    stateInfo.moveCounter = 1;
 
     short row = 7;
     short col = 0;
@@ -237,38 +282,38 @@ void ChessEngine::LoadFEN(const std::string &fen)
 
     i++;
 
-    turn = fen[i] == 'w' ? PieceColor::WHITE : PieceColor::BLACK;
+    stateInfo.turn = fen[i] == 'w' ? PieceColor::WHITE : PieceColor::BLACK;
 
     i += 2;
     char c;
-    rookKMovedW = true;
-    rookQMovedW = true;
-    kingMovedW = true;
-    rookKMovedB = true;
-    rookQMovedB = true;
-    kingMovedB = true;
+    stateInfo.rookKMovedW = true;
+    stateInfo.rookQMovedW = true;
+    stateInfo.kingMovedW = true;
+    stateInfo.rookKMovedB = true;
+    stateInfo.rookQMovedB = true;
+    stateInfo.kingMovedB = true;
 
     while ((c = fen[i]) != ' ')
     {
         if (c == 'K')
         {
-            rookKMovedW = false;
-            kingMovedW = false;
+            stateInfo.rookKMovedW = false;
+            stateInfo.kingMovedW = false;
         }
         else if (c == 'Q')
         {
-            rookQMovedW = false;
-            kingMovedW = false;
+            stateInfo.rookQMovedW = false;
+            stateInfo.kingMovedW = false;
         }
         else if (c == 'k')
         {
-            rookKMovedB = false;
-            kingMovedB = false;
+            stateInfo.rookKMovedB = false;
+            stateInfo.kingMovedB = false;
         }
         else if (c == 'q')
         {
-            rookQMovedB = false;
-            kingMovedB = false;
+            stateInfo.rookQMovedB = false;
+            stateInfo.kingMovedB = false;
         }
         i++;
     }
@@ -282,27 +327,27 @@ void ChessEngine::LoadFEN(const std::string &fen)
         short endRow = color == PieceColor::WHITE ? 3 : 4;
 
         short col = (short)fen[i] - 'a';
-        lastMove = Move(startRow, col, endRow, col, MoveType::DOUBLEPAWNPUSH);
+        stateInfo.lastMove = Move(startRow, col, endRow, col, MoveType::DOUBLEPAWNPUSH);
     }
     else
     {
-        lastMove = Move(-1, -1, -1, -1, MoveType::QUIET);
+        stateInfo.lastMove = Move(-1, -1, -1, -1, MoveType::QUIET);
     }
 
     i += 2;
-    halfMoveCounter = (int)(fen[i] - '0');
+    stateInfo.halfMoveCounter = (int)(fen[i] - '0');
     i++;
     while ((c = fen[i]) != ' ')
     {
-        halfMoveCounter = 10 * halfMoveCounter + (int)(fen[i] - '0');
+        stateInfo.halfMoveCounter = 10 * stateInfo.halfMoveCounter + (int)(fen[i] - '0');
         i++;
     }
     i++;
-    moveCounter = (int)(fen[i] - '0');
+    stateInfo.moveCounter = (int)(fen[i] - '0');
     i++;
     while ((c = fen[i]) != '\0')
     {
-        moveCounter = 10 * moveCounter + (int)(fen[i] - '0');
+        stateInfo.moveCounter = 10 * stateInfo.moveCounter + (int)(fen[i] - '0');
         i++;
     }
 }
@@ -318,7 +363,7 @@ void ChessEngine::updateDangers()
         {
             color = pieces[row][col].color;
 
-            if (PosEmpty(row, col) || color == turn)
+            if (PosEmpty(row, col) || color == stateInfo.turn)
                 continue;
 
             switch (pieces[row][col].type)
@@ -922,7 +967,7 @@ void ChessEngine::updateLegalMoves()
         for (short col = 0; col < 8; col++)
         {
             color = pieces[row][col].color;
-            if (PosEmpty(row, col) || color != turn)
+            if (PosEmpty(row, col) || color != stateInfo.turn)
                 continue;
 
             switch (pieces[row][col].type)
@@ -1027,14 +1072,14 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
     }
     else if (row == enPassantRow)
     {
-        if (lastMove.type == MoveType::DOUBLEPAWNPUSH && lastMove.endRow == enPassantRow)
+        if (stateInfo.lastMove.type == MoveType::DOUBLEPAWNPUSH && stateInfo.lastMove.endRow == enPassantRow)
         {
-            if (lastMove.endCol == col + 1)
+            if (stateInfo.lastMove.endCol == col + 1)
             {
                 if (GetCaptureMask(row, col + 1) && isValidEnPassant(row, col, nextRow, col + 1))
                     legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::ENPASSANT));
             }
-            else if (lastMove.endCol == col - 1)
+            else if (stateInfo.lastMove.endCol == col - 1)
             {
                 if (GetCaptureMask(row, col - 1) && isValidEnPassant(row, col, nextRow, col - 1))
                     legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::ENPASSANT));
@@ -1380,19 +1425,19 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
         return;
     }
 
-    if (color == PieceColor::WHITE && (kingMovedW || pieces[0][4] != PieceInfo{PieceType::KING, color}))
+    if (color == PieceColor::WHITE && (stateInfo.kingMovedW || pieces[0][4] != PieceInfo{PieceType::KING, color}))
     {
         return;
     }
 
-    if (color == PieceColor::BLACK && (kingMovedB || pieces[7][4] != PieceInfo{PieceType::KING, color}))
+    if (color == PieceColor::BLACK && (stateInfo.kingMovedB || pieces[7][4] != PieceInfo{PieceType::KING, color}))
     {
         return;
     }
 
     if (color == PieceColor::WHITE)
     {
-        if (!rookKMovedW && pieces[0][7] == PieceInfo{PieceType::ROOK, color})
+        if (!stateInfo.rookKMovedW && pieces[0][7] == PieceInfo{PieceType::ROOK, color})
         {
             if (PosEmpty(0, 5) && PosEmpty(0, 6))
             {
@@ -1403,7 +1448,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
             }
         }
 
-        if (!rookQMovedW && pieces[0][0] == PieceInfo{PieceType::ROOK, color})
+        if (!stateInfo.rookQMovedW && pieces[0][0] == PieceInfo{PieceType::ROOK, color})
         {
             if (PosEmpty(0, 1) && PosEmpty(0, 2) && PosEmpty(0, 3))
             {
@@ -1416,7 +1461,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
     }
     else
     {
-        if (!rookKMovedB && pieces[7][7] == PieceInfo{PieceType::ROOK, color})
+        if (!stateInfo.rookKMovedB && pieces[7][7] == PieceInfo{PieceType::ROOK, color})
         {
             if (PosEmpty(7, 5) && PosEmpty(7, 6))
             {
@@ -1427,7 +1472,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
             }
         }
 
-        if (!rookQMovedB && pieces[7][0] == PieceInfo{PieceType::ROOK, color})
+        if (!stateInfo.rookQMovedB && pieces[7][0] == PieceInfo{PieceType::ROOK, color})
         {
             if (PosEmpty(7, 1) && PosEmpty(7, 2) && PosEmpty(7, 3))
             {
@@ -1471,8 +1516,8 @@ bool ChessEngine::IsSlider(short row, short col) const
 void ChessEngine::UpdateCheck()
 {
 
-    short kingRow = turn == PieceColor::WHITE ? kingRowW : kingRowB;
-    short kingCol = turn == PieceColor::WHITE ? kingColW : kingColB;
+    short kingRow = stateInfo.turn == PieceColor::WHITE ? kingRowW : kingRowB;
+    short kingCol = stateInfo.turn == PieceColor::WHITE ? kingColW : kingColB;
 
     if (checkersNum == 1)
     {
@@ -1507,7 +1552,7 @@ void ChessEngine::UpdateCheck()
     {
         // double check, only king moves allowed
 
-        UpdateKingMoves(kingRow, kingCol, turn);
+        UpdateKingMoves(kingRow, kingCol, stateInfo.turn);
     }
 }
 
