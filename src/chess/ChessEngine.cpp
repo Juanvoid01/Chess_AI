@@ -74,19 +74,41 @@ void ChessEngine::MakeMove(Move move)
     {
         pieces[move.endRow][move.endCol - 1] = {PieceType::ROOK, stateInfo.turn};
         ClearPos(move.endRow, 7);
+        pieces[move.endRow][move.endCol] = pieces[move.iniRow][move.iniCol];
     }
     else if (move.type == MoveType::QUEENCASTLE)
     {
 
         pieces[move.endRow][move.endCol + 1] = {PieceType::ROOK, stateInfo.turn};
         ClearPos(move.endRow, 0);
+        pieces[move.endRow][move.endCol] = pieces[move.iniRow][move.iniCol];
     }
     else if (move.type == MoveType::ENPASSANT)
     {
         ClearPos(move.iniRow, move.endCol);
+        pieces[move.endRow][move.endCol] = pieces[move.iniRow][move.iniCol];
+    }
+    else if (move.type == MoveType::QUEENPROMOTION || move.type == MoveType::QUEENPROMOCAPTURE)
+    {
+        pieces[move.endRow][move.endCol] = {PieceType::QUEEN, pieces[move.iniRow][move.iniCol].color};
+    }
+    else if (move.type == MoveType::KNIGHTPROMOTION || move.type == MoveType::KNIGHTPROMOCAPTURE)
+    {
+        pieces[move.endRow][move.endCol] = {PieceType::KNIGHT, pieces[move.iniRow][move.iniCol].color};
+    }
+    else if (move.type == MoveType::BISHOPPROMOTION || move.type == MoveType::BISHOPPROMOCAPTURE)
+    {
+        pieces[move.endRow][move.endCol] = {PieceType::BISHOP, pieces[move.iniRow][move.iniCol].color};
+    }
+    else if (move.type == MoveType::ROOKPROMOTION || move.type == MoveType::ROOKPROMOCAPTURE)
+    {
+        pieces[move.endRow][move.endCol] = {PieceType::ROOK, pieces[move.iniRow][move.iniCol].color};
+    }
+    else
+    {
+        pieces[move.endRow][move.endCol] = pieces[move.iniRow][move.iniCol];
     }
 
-    pieces[move.endRow][move.endCol] = pieces[move.iniRow][move.iniCol];
     ClearPos(move.iniRow, move.iniCol);
 
     if (stateInfo.turn == PieceColor::WHITE)
@@ -131,7 +153,7 @@ void ChessEngine::MakeMove(Move move)
         stateInfo.moveCounter++;
     }
 
-    if (move.type == MoveType::CAPTURE)
+    if (isCapture(move.type))
     {
         stateInfo.halfMoveCounter = 0;
     }
@@ -174,7 +196,7 @@ void ChessEngine::UnMakeMove(Move move, const PosStateInfo &oldStateInfo)
         if (pieces[move.iniRow][move.iniCol].type == PieceType::KING)
         {
             kingRowW = move.iniRow;
-            kingColW = move.iniCol;           
+            kingColW = move.iniCol;
         }
     }
     else
@@ -189,7 +211,7 @@ void ChessEngine::UnMakeMove(Move move, const PosStateInfo &oldStateInfo)
     // there is no way to know the lastMove and halfMoveCounter and castling rights
 
     stateInfo = oldStateInfo;
-    
+
     updateLegalMoves();
 }
 
@@ -350,6 +372,15 @@ void ChessEngine::LoadFEN(const std::string &fen)
         stateInfo.moveCounter = 10 * stateInfo.moveCounter + (int)(fen[i] - '0');
         i++;
     }
+}
+
+inline bool ChessEngine::isCapture(MoveType type) const
+{
+    return type == MoveType::CAPTURE ||
+           type == MoveType::KNIGHTPROMOCAPTURE ||
+           type == MoveType::BISHOPPROMOCAPTURE ||
+           type == MoveType::ROOKPROMOCAPTURE ||
+           type == MoveType::QUEENPROMOCAPTURE;
 }
 
 void ChessEngine::updateDangers()
@@ -1014,13 +1045,13 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
     }
 
     // diagonal captures
-    if (ValidPos(nextRow, col + 1) && CapturablePos(nextRow, col + 1, color))
+    if (ValidPos(nextRow, col + 1) && CapturablePos(nextRow, col + 1, color) && row != prePromotionRow)
     {
         if (GetCaptureMask(nextRow, col + 1) && IsPinnedPieceLegalMove(row, col, nextRow, col + 1))
             legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::CAPTURE));
     }
 
-    if (ValidPos(nextRow, col - 1) && CapturablePos(nextRow, col - 1, color))
+    if (ValidPos(nextRow, col - 1) && CapturablePos(nextRow, col - 1, color) && row != prePromotionRow)
     {
         if (GetCaptureMask(nextRow, col - 1) && IsPinnedPieceLegalMove(row, col, nextRow, col - 1))
             legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::CAPTURE));

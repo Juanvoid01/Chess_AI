@@ -3,6 +3,7 @@
 #include "EventManager.hpp"
 #include "viewer.hpp"
 #include "Board.hpp"
+#include "Perft.hpp"
 
 void Viewer::run()
 {
@@ -52,6 +53,7 @@ void Viewer::run()
 
         board->SetCenter(windowWidth / 2, windowHeight / 2);
 
+        PerftTest(FEN_START_POS,2);
         // Loop until the user closes the window
 
         while (!glfwWindowShouldClose(window))

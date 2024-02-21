@@ -10,34 +10,35 @@ unsigned long long int Perft(unsigned int depth);
 
 void PerftTest(const std::string &FEN, unsigned int depth)
 {
-    /*chessEngine.LoadFEN(FEN);
+    chessEngine.LoadFEN(FEN);
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    Perft(depth);
+    unsigned long long int n_moves = Perft(depth);
 
     auto end = std::chrono::high_resolution_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-    std::cout << "Perft execution time: " << duration.count() << " milliseconds\n";*/
+    std::cout << "Perft : " << n_moves << "  execution time: " << duration.count() << " ms\n";
 }
 
-unsigned long long int Perft(int depth)
+unsigned long long int Perft(unsigned int depth)
 {
-    /*int n_moves, i;
+    if (depth == 0)
+        return 1;
+
     unsigned long long int nodes = 0;
 
-    if (depth == 0)
-        return 1ULL;
+    int n_moves = chessEngine.GetLegalMoves().size();
+    PosStateInfo posInfoState;
 
-    n_moves = chessEngine.GetLegalMoves().size();
-
-    for (i = 0; i < n_moves; i++)
+    for (Move move : chessEngine.GetLegalMoves())
     {
-        ChessEngine
+        posInfoState = chessEngine.GetStateInfo();
+        chessEngine.MakeMove(move);
         nodes += Perft(depth - 1);
-        UndoMove(move_list[i]);
+        chessEngine.UnMakeMove(move, posInfoState);
     }
-    return nodes;*/
+    return nodes;
 }

@@ -50,21 +50,6 @@ private:
     short kingRowW, kingColW;
     short kingRowB, kingColB;
 
-    /*bool kingMovedW;
-    bool kingMovedB;
-    bool rookKMovedW;
-    bool rookQMovedW;
-    bool rookKMovedB;
-    bool rookQMovedB;
-
-    int halfMoveCounter;
-
-    int moveCounter;
-    PieceColor turn = PieceColor::WHITE;
-    Move lastMove = Move(-1, -1, -1, -1, MoveType::QUIET);
-
-    */
-
     inline void SetAttackedSquare(short row, short col, bool value) { attackedSquares.set(row * 8 + col, value); }
     inline void SetkingDangerSquare(short row, short col, bool value) { kingDangerSquares.set(row * 8 + col, value); }
     inline void SetCaptureMask(short row, short col, bool value) { captureMask.set(row * 8 + col, value); }
@@ -85,6 +70,8 @@ private:
     inline bool isEnemyPiece(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color != color; }
     inline bool isFriendlyPiece(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color == color; }
 
+    inline bool isCapture(MoveType type) const;
+    
     void updateDangers();
     void UpdatePawnDangers(short row, short col, PieceColor color);
     void UpdateKnightDangers(short row, short col, PieceColor color);

@@ -30,6 +30,8 @@ private:
     int rowSelected = -1;
     int colSelected = -1;
 
+    PieceType promoPiece = PieceType::QUEEN;
+    
     ChessEngine chessEngine;
 
     void CopyBoardFromEngine();

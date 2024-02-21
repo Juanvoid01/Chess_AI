@@ -141,8 +141,43 @@ void Board::ClickEvent(float mouseX, float mouseY)
                 if (move.endRow == row && move.endCol == col &&
                     move.iniRow == rowSelected && move.iniCol == colSelected)
                 {
-                    MovePiece(move);
-                    break;
+                    if (move.type == MoveType::QUEENPROMOTION || move.type == MoveType::QUEENPROMOCAPTURE)
+                    {
+                        if (promoPiece == PieceType::QUEEN)
+                        {
+                            MovePiece(move);
+                            break;
+                        }
+                    }
+                    else if (move.type == MoveType::KNIGHTPROMOTION || move.type == MoveType::KNIGHTPROMOCAPTURE)
+                    {
+                        if (promoPiece == PieceType::KNIGHT)
+                        {
+                            MovePiece(move);
+                            break;
+                        }
+                    }
+                    else if (move.type == MoveType::BISHOPPROMOTION || move.type == MoveType::BISHOPPROMOCAPTURE)
+                    {
+                        if (promoPiece == PieceType::BISHOP)
+                        {
+                            MovePiece(move);
+                            break;
+                        }
+                    }
+                    else if (move.type == MoveType::ROOKPROMOTION || move.type == MoveType::ROOKPROMOCAPTURE)
+                    {
+                        if (promoPiece == PieceType::ROOK)
+                        {
+                            MovePiece(move);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        MovePiece(move);
+                        break;
+                    }
                 }
             }
         }
@@ -180,6 +215,9 @@ void Board::MovePiece(Move move)
         squares[move.endRow][move.endCol - 1]->PutPiece(PieceType::ROOK,
                                                         GetPColor(move.iniRow, move.iniCol));
         squares[move.endRow][7]->Clear();
+
+        squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
+                                                    GetPColor(move.iniRow, move.iniCol));
     }
     else if (move.type == MoveType::QUEENCASTLE)
     {
@@ -187,13 +225,40 @@ void Board::MovePiece(Move move)
         squares[move.endRow][move.endCol + 1]->PutPiece(PieceType::ROOK,
                                                         GetPColor(move.iniRow, move.iniCol));
         squares[move.endRow][0]->Clear();
+
+        squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
+                                                    GetPColor(move.iniRow, move.iniCol));
     }
     else if (move.type == MoveType::ENPASSANT)
     {
+
         squares[move.iniRow][move.endCol]->Clear();
+
+        squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
+                                                    GetPColor(move.iniRow, move.iniCol));
     }
-    squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
-                                                GetPColor(move.iniRow, move.iniCol));
+    else if (move.type == MoveType::QUEENPROMOTION || move.type == MoveType::QUEENPROMOCAPTURE)
+    {
+        squares[move.endRow][move.endCol]->PutPiece(PieceType::QUEEN, GetPColor(move.iniRow, move.iniCol));
+    }
+    else if (move.type == MoveType::KNIGHTPROMOTION || move.type == MoveType::KNIGHTPROMOCAPTURE)
+    {
+        squares[move.endRow][move.endCol]->PutPiece(PieceType::KNIGHT, GetPColor(move.iniRow, move.iniCol));
+    }
+    else if (move.type == MoveType::BISHOPPROMOTION || move.type == MoveType::BISHOPPROMOCAPTURE)
+    {
+        squares[move.endRow][move.endCol]->PutPiece(PieceType::BISHOP, GetPColor(move.iniRow, move.iniCol));
+    }
+    else if (move.type == MoveType::ROOKPROMOTION || move.type == MoveType::ROOKPROMOCAPTURE)
+    {
+        squares[move.endRow][move.endCol]->PutPiece(PieceType::ROOK, GetPColor(move.iniRow, move.iniCol));
+    }
+    else
+    {
+        squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
+                                                    GetPColor(move.iniRow, move.iniCol));
+    }
+
     squares[move.iniRow][move.iniCol]->Clear();
 
     chessEngine.MakeMove(move);
