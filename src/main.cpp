@@ -17,10 +17,12 @@ int main()
 
     viewerWorker.join();
 
-    PerftTest(FEN_START_POS,5);
+    //PerftTestKiwipete();
+    //PerftTestEdwards2();
+    //PerftTestTalkchess();
+    //PerftTestPos4();
+    //PerftTestPos4Mirror();
+    //PerftTestMoveInfo(FEN_KIWIPETE);
 
-    //PerftTest(KIWIPETE, 1);
-    //PerftTestMoveInfo(KIWIPETE);
-    //PerftTestMoveInfo(FEN_START_POS);
     return 0;
 }

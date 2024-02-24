@@ -174,13 +174,13 @@ void ChessEngine::UnMakeMove(Move move, const PosStateInfo &lastStateInfo)
     if (move.type == MoveType::KINGCASTLE)
     {
         pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
-        pieces[move.endRow][7] = {PieceType::ROOK, pieces[move.endRow][move.endCol - 1].color};
+        pieces[move.endRow][7] = {PieceType::ROOK, pieces[move.iniRow][move.iniCol].color};
         ClearPos(move.endRow, move.endCol - 1);
     }
     else if (move.type == MoveType::QUEENCASTLE)
     {
         pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
-        pieces[move.endRow][0] = {PieceType::ROOK, pieces[move.endRow][move.endCol - 1].color};
+        pieces[move.endRow][0] = {PieceType::ROOK, pieces[move.iniRow][move.iniCol].color};
         ClearPos(move.endRow, move.endCol + 1);
     }
     else if (move.type == MoveType::ENPASSANT)
