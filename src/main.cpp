@@ -2,10 +2,9 @@
 #include <thread>
 #include <memory>
 
-
-
 #include "viewer.hpp"
 #include "logic.hpp"
+#include "Perft.hpp"
 
 int main()
 {
@@ -18,5 +17,10 @@ int main()
 
     viewerWorker.join();
 
+    PerftTest(FEN_START_POS,5);
+
+    //PerftTest(KIWIPETE, 1);
+    //PerftTestMoveInfo(KIWIPETE);
+    //PerftTestMoveInfo(FEN_START_POS);
     return 0;
 }

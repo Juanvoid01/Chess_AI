@@ -42,6 +42,11 @@ void EventManager::Key_pressed_callback(GLFWwindow *window, int key, int scancod
         return;
     }
 
+    if(key == GLFW_KEY_X)
+    {
+        board->KeyEvent('x');
+    }
+
     float translationX = 0.0f;
     float translationY = 0.0f;
     bool translation = false;

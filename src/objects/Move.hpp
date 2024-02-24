@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PieceType.hpp"
+#include <string>
 
 enum class MoveType
 {
@@ -40,6 +41,8 @@ public:
     Move &operator=(const Move &other);
 
     Move &operator=(Move &&other) noexcept;
+
+    std::string ToBasicString() const;
 };
 
 struct PieceInfo
@@ -76,6 +79,12 @@ struct PosStateInfo
     int moveCounter;
     Move lastMove;
     PieceColor turn;
+    PieceInfo capturedPiece;
+
+    short kingRowW;
+    short kingColW;
+    short kingRowB;
+    short kingColB;
 
     PosStateInfo &operator=(const PosStateInfo &other)
     {
@@ -91,6 +100,11 @@ struct PosStateInfo
             lastMove = other.lastMove;
             moveCounter = other.moveCounter;
             turn = other.turn;
+            capturedPiece = other.capturedPiece;
+            kingRowW = other.kingRowW;
+            kingColW = other.kingColW;
+            kingRowB = other.kingRowB;
+            kingColB = other.kingColB;
         }
         return *this;
     }

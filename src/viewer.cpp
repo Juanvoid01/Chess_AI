@@ -3,7 +3,6 @@
 #include "EventManager.hpp"
 #include "viewer.hpp"
 #include "Board.hpp"
-#include "Perft.hpp"
 
 void Viewer::run()
 {
@@ -48,12 +47,11 @@ void Viewer::run()
 
         std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight);
         std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer);
-
+        board->LoadFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
         EventManager eventManager(window, renderer, board);
 
         board->SetCenter(windowWidth / 2, windowHeight / 2);
 
-        PerftTest(FEN_START_POS,2);
         // Loop until the user closes the window
 
         while (!glfwWindowShouldClose(window))

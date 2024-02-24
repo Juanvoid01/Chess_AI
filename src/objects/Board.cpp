@@ -135,47 +135,47 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
         if (squares[row][col]->IsSelected())
         {
-
-            for (Move move : chessEngine.GetLegalMoves())
+            chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+            for (int i = 0; i < numLegalMoves; i++)
             {
-                if (move.endRow == row && move.endCol == col &&
-                    move.iniRow == rowSelected && move.iniCol == colSelected)
+                if (legalMoves[i].endRow == row && legalMoves[i].endCol == col &&
+                    legalMoves[i].iniRow == rowSelected && legalMoves[i].iniCol == colSelected)
                 {
-                    if (move.type == MoveType::QUEENPROMOTION || move.type == MoveType::QUEENPROMOCAPTURE)
+                    if (legalMoves[i].type == MoveType::QUEENPROMOTION || legalMoves[i].type == MoveType::QUEENPROMOCAPTURE)
                     {
                         if (promoPiece == PieceType::QUEEN)
                         {
-                            MovePiece(move);
+                            MovePiece(legalMoves[i]);
                             break;
                         }
                     }
-                    else if (move.type == MoveType::KNIGHTPROMOTION || move.type == MoveType::KNIGHTPROMOCAPTURE)
+                    else if (legalMoves[i].type == MoveType::KNIGHTPROMOTION || legalMoves[i].type == MoveType::KNIGHTPROMOCAPTURE)
                     {
                         if (promoPiece == PieceType::KNIGHT)
                         {
-                            MovePiece(move);
+                            MovePiece(legalMoves[i]);
                             break;
                         }
                     }
-                    else if (move.type == MoveType::BISHOPPROMOTION || move.type == MoveType::BISHOPPROMOCAPTURE)
+                    else if (legalMoves[i].type == MoveType::BISHOPPROMOTION || legalMoves[i].type == MoveType::BISHOPPROMOCAPTURE)
                     {
                         if (promoPiece == PieceType::BISHOP)
                         {
-                            MovePiece(move);
+                            MovePiece(legalMoves[i]);
                             break;
                         }
                     }
-                    else if (move.type == MoveType::ROOKPROMOTION || move.type == MoveType::ROOKPROMOCAPTURE)
+                    else if (legalMoves[i].type == MoveType::ROOKPROMOTION || legalMoves[i].type == MoveType::ROOKPROMOCAPTURE)
                     {
                         if (promoPiece == PieceType::ROOK)
                         {
-                            MovePiece(move);
+                            MovePiece(legalMoves[i]);
                             break;
                         }
                     }
                     else
                     {
-                        MovePiece(move);
+                        MovePiece(legalMoves[i]);
                         break;
                     }
                 }
@@ -193,15 +193,26 @@ void Board::ClickEvent(float mouseX, float mouseY)
             rowSelected = row;
             colSelected = col;
 
-            for (Move move : chessEngine.GetLegalMoves())
+            chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+            for (int i = 0; i < numLegalMoves; i++)
             {
-                if (move.iniRow == rowSelected && move.iniCol == colSelected)
+                if (legalMoves[i].iniRow == rowSelected && legalMoves[i].iniCol == colSelected)
                 {
-                    SelectPos(move.endRow, move.endCol);
+                    SelectPos(legalMoves[i].endRow, legalMoves[i].endCol);
                 }
             }
         }
     }
+}
+
+void Board::KeyEvent(char key)
+{
+    if(key == 'x' || key == 'X')
+    {
+        chessEngine.UnMakeMove(chessEngine.GetLastMove(),chessEngine.GetStateInfo());
+        CopyBoardFromEngine();
+    }
+    
 }
 
 void Board::MovePiece(Move move)

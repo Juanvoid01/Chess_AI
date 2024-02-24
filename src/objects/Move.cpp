@@ -15,10 +15,10 @@ Move::Move(Move &&other) noexcept
 {
 }
 
-Move& Move::operator=(const Move &other)
+Move &Move::operator=(const Move &other)
 {
     if (this != &other)
-    { 
+    {
         iniRow = other.iniRow;
         iniCol = other.iniCol;
         endRow = other.endRow;
@@ -39,6 +39,19 @@ Move &Move::operator=(Move &&other) noexcept
         type = other.type;
     }
     return *this;
+}
+
+std::string Move::ToBasicString() const
+{
+    std::string result;
+    result.reserve(4);
+
+    result.push_back('a' + iniCol);
+    result.push_back('1' + iniRow);
+    result.push_back('a' + endCol);
+    result.push_back('1' + endRow);
+
+    return result;
 }
 
 // inline char colToChar(int col) const { return 'a' + col - 1; }

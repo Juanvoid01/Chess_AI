@@ -3,10 +3,7 @@
 
 ChessEngine::ChessEngine(const std::string &FEN)
 {
-
-    legalMoves.reserve(MAX_THEORETICAL_MOVES_PER_POSITION);
     LoadFEN(FEN);
-    updateLegalMoves();
 }
 
 void ChessEngine::SetInitialPosition()
@@ -30,8 +27,8 @@ void ChessEngine::SetInitialPosition()
     pieces[0][2] = {PieceType::BISHOP, PieceColor::WHITE};
     pieces[0][3] = {PieceType::QUEEN, PieceColor::WHITE};
     pieces[0][4] = {PieceType::KING, PieceColor::WHITE};
-    kingRowW = 0;
-    kingColW = 4;
+    stateInfo.kingRowW = 0;
+    stateInfo.kingColW = 4;
     pieces[0][5] = {PieceType::BISHOP, PieceColor::WHITE};
     pieces[0][6] = {PieceType::KNIGHT, PieceColor::WHITE};
     pieces[0][7] = {PieceType::ROOK, PieceColor::WHITE};
@@ -41,8 +38,8 @@ void ChessEngine::SetInitialPosition()
     pieces[7][2] = {PieceType::BISHOP, PieceColor::BLACK};
     pieces[7][3] = {PieceType::QUEEN, PieceColor::BLACK};
     pieces[7][4] = {PieceType::KING, PieceColor::BLACK};
-    kingRowB = 7;
-    kingColB = 4;
+    stateInfo.kingRowB = 7;
+    stateInfo.kingColB = 4;
 
     pieces[7][5] = {PieceType::BISHOP, PieceColor::BLACK};
     pieces[7][6] = {PieceType::KNIGHT, PieceColor::BLACK};
@@ -69,6 +66,8 @@ void ChessEngine::ClearBoard()
 
 void ChessEngine::MakeMove(Move move)
 {
+
+    stateInfo.capturedPiece = pieces[move.endRow][move.endCol];
 
     if (move.type == MoveType::KINGCASTLE)
     {
@@ -115,8 +114,8 @@ void ChessEngine::MakeMove(Move move)
     {
         if (pieces[move.endRow][move.endCol].type == PieceType::KING)
         {
-            kingRowW = move.endRow;
-            kingColW = move.endCol;
+            stateInfo.kingRowW = move.endRow;
+            stateInfo.kingColW = move.endCol;
             stateInfo.kingMovedW = true;
         }
 
@@ -135,8 +134,8 @@ void ChessEngine::MakeMove(Move move)
     {
         if (pieces[move.endRow][move.endCol].type == PieceType::KING)
         {
-            kingRowB = move.endRow;
-            kingColB = move.endCol;
+            stateInfo.kingRowB = move.endRow;
+            stateInfo.kingColB = move.endCol;
             stateInfo.kingMovedB = true;
         }
 
@@ -167,71 +166,79 @@ void ChessEngine::MakeMove(Move move)
     }
 
     stateInfo.lastMove = move;
-    updateLegalMoves();
 }
 
-void ChessEngine::UnMakeMove(Move move, const PosStateInfo &oldStateInfo)
+void ChessEngine::UnMakeMove(Move move, const PosStateInfo &lastStateInfo)
 {
-    PieceColor undoColor = stateInfo.turn == PieceColor::WHITE ? PieceColor::BLACK : PieceColor::WHITE;
+   
     if (move.type == MoveType::KINGCASTLE)
     {
+        pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
         pieces[move.endRow][7] = {PieceType::ROOK, pieces[move.endRow][move.endCol - 1].color};
         ClearPos(move.endRow, move.endCol - 1);
     }
     else if (move.type == MoveType::QUEENCASTLE)
     {
+        pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
         pieces[move.endRow][0] = {PieceType::ROOK, pieces[move.endRow][move.endCol - 1].color};
         ClearPos(move.endRow, move.endCol + 1);
     }
     else if (move.type == MoveType::ENPASSANT)
     {
-        pieces[move.iniRow][move.endCol] = {PieceType::PAWN, undoColor};
+        pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
+        pieces[move.iniRow][move.endCol] = {PieceType::PAWN, stateInfo.turn};
     }
-
-    pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
-    ClearPos(move.endRow, move.endCol);
-
-    if (undoColor == PieceColor::WHITE)
+    else if (move.type == MoveType::QUEENPROMOTION || move.type == MoveType::QUEENPROMOCAPTURE)
     {
-        if (pieces[move.iniRow][move.iniCol].type == PieceType::KING)
-        {
-            kingRowW = move.iniRow;
-            kingColW = move.iniCol;
-        }
+        pieces[move.iniRow][move.iniCol] = {PieceType::PAWN, pieces[move.endRow][move.endCol].color};
+    }
+    else if (move.type == MoveType::KNIGHTPROMOTION || move.type == MoveType::KNIGHTPROMOCAPTURE)
+    {
+        pieces[move.iniRow][move.iniCol] = {PieceType::PAWN, pieces[move.endRow][move.endCol].color};
+    }
+    else if (move.type == MoveType::BISHOPPROMOTION || move.type == MoveType::BISHOPPROMOCAPTURE)
+    {
+        pieces[move.iniRow][move.iniCol] = {PieceType::PAWN, pieces[move.endRow][move.endCol].color};
+    }
+    else if (move.type == MoveType::ROOKPROMOTION || move.type == MoveType::ROOKPROMOCAPTURE)
+    {
+        pieces[move.iniRow][move.iniCol] = {PieceType::PAWN, pieces[move.endRow][move.endCol].color};
     }
     else
     {
-        if (pieces[move.endRow][move.endCol].type == PieceType::KING)
-        {
-            kingRowB = move.iniRow;
-            kingColB = move.iniCol;
-        }
+        pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
     }
+
+    ClearPos(move.endRow, move.endCol);
 
     // there is no way to know the lastMove and halfMoveCounter and castling rights
 
-    stateInfo = oldStateInfo;
+    if (isCapture(move.type) && move.type != MoveType::ENPASSANT)
+    {
+        if (stateInfo.capturedPiece.type != PieceType::EMPTY)
+            pieces[move.endRow][move.endCol] = stateInfo.capturedPiece;
+    }
 
-    updateLegalMoves();
+    stateInfo = lastStateInfo;
 }
 
 bool ChessEngine::IsCheckMate() const
 {
-    return legalMoves.size() == 0 && checkersNum > 0;
+    return numLegalMoves == 0 && checkersNum > 0;
 }
 
 bool ChessEngine::IsStaleMate() const
 {
-    return legalMoves.size() == 0 && checkersNum == 0;
+    return numLegalMoves == 0 && checkersNum == 0;
 }
 
 void ChessEngine::LoadFEN(const std::string &fen)
 {
-    kingRowW = -1, kingColW = -1;
-    kingRowB = -1, kingColB = -1;
+    stateInfo.kingRowW = -1, stateInfo.kingColW = -1;
+    stateInfo.kingRowB = -1, stateInfo.kingColB = -1;
     stateInfo.halfMoveCounter = 0;
     stateInfo.moveCounter = 1;
-
+    stateInfo.capturedPiece = {PieceType::EMPTY, PieceColor::WHITE};
     short row = 7;
     short col = 0;
     int i = 0;
@@ -284,13 +291,13 @@ void ChessEngine::LoadFEN(const std::string &fen)
                 pieces[row][col] = {PieceType::KING, pieceColor};
                 if (pieceColor == PieceColor::WHITE)
                 {
-                    kingRowW = row;
-                    kingColW = col;
+                    stateInfo.kingRowW = row;
+                    stateInfo.kingColW = col;
                 }
                 else
                 {
-                    kingRowB = row;
-                    kingColB = col;
+                    stateInfo.kingRowB = row;
+                    stateInfo.kingColB = col;
                 }
                 break;
             default:
@@ -367,7 +374,7 @@ void ChessEngine::LoadFEN(const std::string &fen)
     i++;
     stateInfo.moveCounter = (int)(fen[i] - '0');
     i++;
-    while ((c = fen[i]) != '\0')
+    while ((c = fen[i]) != '\0' && (c = fen[i]) != ' ')
     {
         stateInfo.moveCounter = 10 * stateInfo.moveCounter + (int)(fen[i] - '0');
         i++;
@@ -380,7 +387,8 @@ inline bool ChessEngine::isCapture(MoveType type) const
            type == MoveType::KNIGHTPROMOCAPTURE ||
            type == MoveType::BISHOPPROMOCAPTURE ||
            type == MoveType::ROOKPROMOCAPTURE ||
-           type == MoveType::QUEENPROMOCAPTURE;
+           type == MoveType::QUEENPROMOCAPTURE ||
+           type == MoveType::ENPASSANT;
 }
 
 void ChessEngine::updateDangers()
@@ -974,9 +982,11 @@ void ChessEngine::UpdateQueenDangers(short row, short col, PieceColor color)
     UpdateBishopDangers(row, col, color);
 }
 
-void ChessEngine::updateLegalMoves()
+void ChessEngine::GetLegalMoves(MoveArray &moves, int &numMoves)
 {
-    legalMoves.clear();
+    numLegalMoves = 0;
+    legalMoves = &moves;
+
     attackedSquares.reset();
     kingDangerSquares.reset();
     captureMask.set();
@@ -1027,6 +1037,8 @@ void ChessEngine::updateLegalMoves()
             }
         }
     }
+
+    numMoves = numLegalMoves;
 }
 
 void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
@@ -1041,20 +1053,20 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
     if (ValidPos(nextRow, col) && PosEmpty(nextRow, col) && row != prePromotionRow)
     {
         if (GetPushMask(nextRow, col) && IsPinnedPieceLegalMove(row, col, nextRow, col))
-            legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::QUIET));
+            AddLegalMove(Move(row, col, nextRow, col, MoveType::QUIET));
     }
 
     // diagonal captures
     if (ValidPos(nextRow, col + 1) && CapturablePos(nextRow, col + 1, color) && row != prePromotionRow)
     {
         if (GetCaptureMask(nextRow, col + 1) && IsPinnedPieceLegalMove(row, col, nextRow, col + 1))
-            legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, nextRow, col + 1, MoveType::CAPTURE));
     }
 
     if (ValidPos(nextRow, col - 1) && CapturablePos(nextRow, col - 1, color) && row != prePromotionRow)
     {
         if (GetCaptureMask(nextRow, col - 1) && IsPinnedPieceLegalMove(row, col, nextRow, col - 1))
-            legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, nextRow, col - 1, MoveType::CAPTURE));
     }
 
     if (row == startRow)
@@ -1062,7 +1074,7 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
         if (PosEmpty(nextRow, col) && PosEmpty(nextRow + dir, col))
         {
             if (GetPushMask(nextRow + dir, col) && IsPinnedPieceLegalMove(row, col, nextRow + dir, col))
-                legalMoves.emplace_back(Move(row, col, nextRow + dir, col, MoveType::DOUBLEPAWNPUSH));
+                AddLegalMove(Move(row, col, nextRow + dir, col, MoveType::DOUBLEPAWNPUSH));
         }
     }
     else if (row == prePromotionRow)
@@ -1071,10 +1083,10 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
         {
             if (IsPinnedPieceLegalMove(row, col, nextRow, col))
             {
-                legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::QUEENPROMOTION));
-                legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::ROOKPROMOTION));
-                legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::BISHOPPROMOTION));
-                legalMoves.emplace_back(Move(row, col, nextRow, col, MoveType::KNIGHTPROMOTION));
+                AddLegalMove(Move(row, col, nextRow, col, MoveType::QUEENPROMOTION));
+                AddLegalMove(Move(row, col, nextRow, col, MoveType::ROOKPROMOTION));
+                AddLegalMove(Move(row, col, nextRow, col, MoveType::BISHOPPROMOTION));
+                AddLegalMove(Move(row, col, nextRow, col, MoveType::KNIGHTPROMOTION));
             }
         }
 
@@ -1083,10 +1095,10 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
         {
             if (IsPinnedPieceLegalMove(row, col, nextRow, col + 1))
             {
-                legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::QUEENPROMOTION));
-                legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::ROOKPROMOTION));
-                legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::BISHOPPROMOTION));
-                legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::KNIGHTPROMOTION));
+                AddLegalMove(Move(row, col, nextRow, col + 1, MoveType::QUEENPROMOCAPTURE));
+                AddLegalMove(Move(row, col, nextRow, col + 1, MoveType::ROOKPROMOCAPTURE));
+                AddLegalMove(Move(row, col, nextRow, col + 1, MoveType::BISHOPPROMOCAPTURE));
+                AddLegalMove(Move(row, col, nextRow, col + 1, MoveType::KNIGHTPROMOCAPTURE));
             }
         }
 
@@ -1094,10 +1106,10 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
         {
             if (IsPinnedPieceLegalMove(row, col, nextRow, col - 1))
             {
-                legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::QUEENPROMOCAPTURE));
-                legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::ROOKPROMOCAPTURE));
-                legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::BISHOPPROMOCAPTURE));
-                legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::KNIGHTPROMOCAPTURE));
+                AddLegalMove(Move(row, col, nextRow, col - 1, MoveType::QUEENPROMOCAPTURE));
+                AddLegalMove(Move(row, col, nextRow, col - 1, MoveType::ROOKPROMOCAPTURE));
+                AddLegalMove(Move(row, col, nextRow, col - 1, MoveType::BISHOPPROMOCAPTURE));
+                AddLegalMove(Move(row, col, nextRow, col - 1, MoveType::KNIGHTPROMOCAPTURE));
             }
         }
     }
@@ -1108,12 +1120,12 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
             if (stateInfo.lastMove.endCol == col + 1)
             {
                 if (GetCaptureMask(row, col + 1) && isValidEnPassant(row, col, nextRow, col + 1))
-                    legalMoves.emplace_back(Move(row, col, nextRow, col + 1, MoveType::ENPASSANT));
+                    AddLegalMove(Move(row, col, nextRow, col + 1, MoveType::ENPASSANT));
             }
             else if (stateInfo.lastMove.endCol == col - 1)
             {
                 if (GetCaptureMask(row, col - 1) && isValidEnPassant(row, col, nextRow, col - 1))
-                    legalMoves.emplace_back(Move(row, col, nextRow, col - 1, MoveType::ENPASSANT));
+                    AddLegalMove(Move(row, col, nextRow, col - 1, MoveType::ENPASSANT));
             }
         }
     }
@@ -1127,11 +1139,11 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
         }
         else if (CapturablePos(destRow, destCol, color) && GetCaptureMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
         }
     }
 
@@ -1141,11 +1153,11 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
         }
         else if (CapturablePos(destRow, destCol, color) && GetCaptureMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
         }
     }
 
@@ -1155,11 +1167,11 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
         }
         else if (CapturablePos(destRow, destCol, color) && GetCaptureMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
         }
     }
 
@@ -1169,11 +1181,11 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
         }
         else if (CapturablePos(destRow, destCol, color) && GetCaptureMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
         }
     }
 
@@ -1183,11 +1195,11 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
         }
         else if (CapturablePos(destRow, destCol, color) && GetCaptureMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
         }
     }
 
@@ -1197,11 +1209,11 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
         }
         else if (CapturablePos(destRow, destCol, color) && GetCaptureMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
         }
     }
 
@@ -1211,11 +1223,11 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
         }
         else if (CapturablePos(destRow, destCol, color) && GetCaptureMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
         }
     }
 
@@ -1225,11 +1237,11 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     {
         if (PosEmpty(destRow, destCol) && GetPushMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
         }
         else if (CapturablePos(destRow, destCol, color) && GetCaptureMask(destRow, destCol))
         {
-            legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+            AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
         }
     }
 }
@@ -1245,13 +1257,13 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
         if (PosEmpty(i, col))
         {
             if (GetPushMask(i, col))
-                legalMoves.emplace_back(Move(row, col, i, col, MoveType::QUIET));
+                AddLegalMove(Move(row, col, i, col, MoveType::QUIET));
         }
         else
         {
             if (CapturablePos(i, col, color) && GetCaptureMask(i, col))
             {
-                legalMoves.emplace_back(Move(row, col, i, col, MoveType::CAPTURE));
+                AddLegalMove(Move(row, col, i, col, MoveType::CAPTURE));
             }
             break;
         }
@@ -1265,13 +1277,13 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
         if (PosEmpty(i, col))
         {
             if (GetPushMask(i, col))
-                legalMoves.emplace_back(Move(row, col, i, col, MoveType::QUIET));
+                AddLegalMove(Move(row, col, i, col, MoveType::QUIET));
         }
         else
         {
             if (CapturablePos(i, col, color) && GetCaptureMask(i, col))
             {
-                legalMoves.emplace_back(Move(row, col, i, col, MoveType::CAPTURE));
+                AddLegalMove(Move(row, col, i, col, MoveType::CAPTURE));
             }
             break;
         }
@@ -1285,13 +1297,13 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
         if (PosEmpty(row, i))
         {
             if (GetPushMask(row, i))
-                legalMoves.emplace_back(Move(row, col, row, i, MoveType::QUIET));
+                AddLegalMove(Move(row, col, row, i, MoveType::QUIET));
         }
         else
         {
             if (CapturablePos(row, i, color) && GetCaptureMask(row, i))
             {
-                legalMoves.emplace_back(Move(row, col, row, i, MoveType::CAPTURE));
+                AddLegalMove(Move(row, col, row, i, MoveType::CAPTURE));
             }
             break;
         }
@@ -1305,13 +1317,13 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
         if (PosEmpty(row, i))
         {
             if (GetPushMask(row, i))
-                legalMoves.emplace_back(Move(row, col, row, i, MoveType::QUIET));
+                AddLegalMove(Move(row, col, row, i, MoveType::QUIET));
         }
         else
         {
             if (CapturablePos(row, i, color) && GetCaptureMask(row, i))
             {
-                legalMoves.emplace_back(Move(row, col, row, i, MoveType::CAPTURE));
+                AddLegalMove(Move(row, col, row, i, MoveType::CAPTURE));
             }
             break;
         }
@@ -1336,11 +1348,11 @@ void ChessEngine::UpdateKingMoves(short row, short col, PieceColor color)
 
                 if (PosEmpty(destRow, destCol))
                 {
-                    legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::QUIET));
+                    AddLegalMove(Move(row, col, destRow, destCol, MoveType::QUIET));
                 }
                 else if (CapturablePos(destRow, destCol, color))
                 {
-                    legalMoves.emplace_back(Move(row, col, destRow, destCol, MoveType::CAPTURE));
+                    AddLegalMove(Move(row, col, destRow, destCol, MoveType::CAPTURE));
                 }
             }
         }
@@ -1359,13 +1371,13 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
         if (PosEmpty(i, j))
         {
             if (GetPushMask(i, j))
-                legalMoves.emplace_back(Move(row, col, i, j, MoveType::QUIET));
+                AddLegalMove(Move(row, col, i, j, MoveType::QUIET));
         }
         else
         {
             if (CapturablePos(i, j, color) && GetCaptureMask(i, j))
             {
-                legalMoves.emplace_back(Move(row, col, i, j, MoveType::CAPTURE));
+                AddLegalMove(Move(row, col, i, j, MoveType::CAPTURE));
             }
             break;
         }
@@ -1382,13 +1394,13 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
         if (PosEmpty(i, j))
         {
             if (GetPushMask(i, j))
-                legalMoves.emplace_back(Move(row, col, i, j, MoveType::QUIET));
+                AddLegalMove(Move(row, col, i, j, MoveType::QUIET));
         }
         else
         {
             if (CapturablePos(i, j, color) && GetCaptureMask(i, j))
             {
-                legalMoves.emplace_back(Move(row, col, i, j, MoveType::CAPTURE));
+                AddLegalMove(Move(row, col, i, j, MoveType::CAPTURE));
             }
             break;
         }
@@ -1405,13 +1417,13 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
         if (PosEmpty(i, j))
         {
             if (GetPushMask(i, j))
-                legalMoves.emplace_back(Move(row, col, i, j, MoveType::QUIET));
+                AddLegalMove(Move(row, col, i, j, MoveType::QUIET));
         }
         else
         {
             if (CapturablePos(i, j, color) && GetCaptureMask(i, j))
             {
-                legalMoves.emplace_back(Move(row, col, i, j, MoveType::CAPTURE));
+                AddLegalMove(Move(row, col, i, j, MoveType::CAPTURE));
             }
             break;
         }
@@ -1428,13 +1440,13 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
         if (PosEmpty(i, j))
         {
             if (GetPushMask(i, j))
-                legalMoves.emplace_back(Move(row, col, i, j, MoveType::QUIET));
+                AddLegalMove(Move(row, col, i, j, MoveType::QUIET));
         }
         else
         {
             if (CapturablePos(i, j, color) && GetCaptureMask(i, j))
             {
-                legalMoves.emplace_back(Move(row, col, i, j, MoveType::CAPTURE));
+                AddLegalMove(Move(row, col, i, j, MoveType::CAPTURE));
             }
             break;
         }
@@ -1474,7 +1486,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
             {
                 if (!GetkingDangerSquare(0, 5) && !GetkingDangerSquare(0, 6))
                 {
-                    legalMoves.emplace_back(Move(kingRowW, kingColW, 0, 6, MoveType::KINGCASTLE));
+                    AddLegalMove(Move(stateInfo.kingRowW, stateInfo.kingColW, 0, 6, MoveType::KINGCASTLE));
                 }
             }
         }
@@ -1485,7 +1497,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
             {
                 if (!GetkingDangerSquare(0, 2) && !GetkingDangerSquare(0, 3))
                 {
-                    legalMoves.emplace_back(Move(kingRowW, kingColW, 0, 2, MoveType::QUEENCASTLE));
+                    AddLegalMove(Move(stateInfo.kingRowW, stateInfo.kingColW, 0, 2, MoveType::QUEENCASTLE));
                 }
             }
         }
@@ -1498,7 +1510,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
             {
                 if (!GetkingDangerSquare(7, 5) && !GetkingDangerSquare(7, 6))
                 {
-                    legalMoves.emplace_back(Move(kingRowB, kingColB, 7, 6, MoveType::KINGCASTLE));
+                    AddLegalMove(Move(stateInfo.kingRowB, stateInfo.kingColB, 7, 6, MoveType::KINGCASTLE));
                 }
             }
         }
@@ -1509,7 +1521,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
             {
                 if (!GetkingDangerSquare(7, 2) && !GetkingDangerSquare(7, 3))
                 {
-                    legalMoves.emplace_back(Move(kingRowB, kingColB, 7, 2, MoveType::QUEENCASTLE));
+                    AddLegalMove(Move(stateInfo.kingRowB, stateInfo.kingColB, 7, 2, MoveType::QUEENCASTLE));
                 }
             }
         }
@@ -1547,8 +1559,8 @@ bool ChessEngine::IsSlider(short row, short col) const
 void ChessEngine::UpdateCheck()
 {
 
-    short kingRow = stateInfo.turn == PieceColor::WHITE ? kingRowW : kingRowB;
-    short kingCol = stateInfo.turn == PieceColor::WHITE ? kingColW : kingColB;
+    short kingRow = stateInfo.turn == PieceColor::WHITE ? stateInfo.kingRowW : stateInfo.kingRowB;
+    short kingCol = stateInfo.turn == PieceColor::WHITE ? stateInfo.kingColW : stateInfo.kingColB;
 
     if (checkersNum == 1)
     {
@@ -1596,8 +1608,8 @@ bool ChessEngine::IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short d
     bool isLegal = false;
 
     PieceColor pieceColor = pieces[pieceRow][pieceCol].color;
-    short kingRow = pieceColor == PieceColor::WHITE ? kingRowW : kingRowB;
-    short kingCol = pieceColor == PieceColor::WHITE ? kingColW : kingColB;
+    short kingRow = pieceColor == PieceColor::WHITE ? stateInfo.kingRowW : stateInfo.kingRowB;
+    short kingCol = pieceColor == PieceColor::WHITE ? stateInfo.kingColW : stateInfo.kingColB;
 
     if (pieceRow == kingRow) // horizontal pin
     {
@@ -1638,8 +1650,8 @@ bool ChessEngine::isValidEnPassant(short pieceRow, short pieceCol, short destRow
 
     PieceColor pieceColor = pieces[pieceRow][pieceCol].color;
 
-    short kingRow = pieceColor == PieceColor::WHITE ? kingRowW : kingRowB;
-    short kingCol = pieceColor == PieceColor::WHITE ? kingColW : kingColB;
+    short kingRow = pieceColor == PieceColor::WHITE ? stateInfo.kingRowW : stateInfo.kingRowB;
+    short kingCol = pieceColor == PieceColor::WHITE ? stateInfo.kingColW : stateInfo.kingColB;
     short enPassantRow = pieceColor == PieceColor::WHITE ? 4 : 3;
 
     if (kingRow == enPassantRow)

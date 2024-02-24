@@ -2,12 +2,12 @@
 
 #include "Move.hpp"
 #include <bitset>
-#include <vector>
 #include <array>
 
-#define MAX_THEORETICAL_MOVES_PER_POSITION 218
+#define MAX_MOVES 218
 #define FEN_START_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
+typedef std::array<Move, MAX_MOVES> MoveArray;
 
 class ChessEngine
 {
@@ -15,11 +15,10 @@ public:
     ChessEngine(const std::string &FEN = FEN_START_POS);
     ~ChessEngine() {}
 
-    inline const std::vector<Move> &GetLegalMoves() const { return legalMoves; }
     void SetInitialPosition();
     void ClearBoard();
     void MakeMove(Move move);
-    void UnMakeMove(Move move, const PosStateInfo &oldStateInfo); // Undo move if it is possible
+    void UnMakeMove(Move move, const PosStateInfo &lastStateInfo); // Undo move if it is possible
     inline Move GetLastMove() const { return stateInfo.lastMove; }
 
     bool IsCheckMate() const;
@@ -28,10 +27,13 @@ public:
     void LoadFEN(const std::string &fen);
     inline PieceInfo GetPiece(short row, short col) const { return pieces[row][col]; }
     inline int GetMoveCounter() const { return stateInfo.moveCounter; }
-    inline const PosStateInfo& GetStateInfo() const {return stateInfo;}
+    inline const PosStateInfo &GetStateInfo() const { return stateInfo; }
 
+    void GetLegalMoves(MoveArray& moves, int& numMoves);
 private:
-    std::vector<Move> legalMoves;
+    MoveArray* legalMoves;
+    int numLegalMoves;
+
     std::bitset<64> kingDangerSquares;
     std::bitset<64> attackedSquares;
     std::bitset<64> captureMask;
@@ -39,7 +41,6 @@ private:
     std::bitset<64> pinnedPieces;
 
     std::array<std::array<PieceInfo, 8>, 8> pieces;
-    
 
     PosStateInfo stateInfo;
 
@@ -47,9 +48,7 @@ private:
     short checkerCol;
     short checkersNum;
 
-    short kingRowW, kingColW;
-    short kingRowB, kingColB;
-
+    inline void AddLegalMove(Move move) { (*legalMoves)[numLegalMoves++] = move; }
     inline void SetAttackedSquare(short row, short col, bool value) { attackedSquares.set(row * 8 + col, value); }
     inline void SetkingDangerSquare(short row, short col, bool value) { kingDangerSquares.set(row * 8 + col, value); }
     inline void SetCaptureMask(short row, short col, bool value) { captureMask.set(row * 8 + col, value); }
@@ -71,7 +70,7 @@ private:
     inline bool isFriendlyPiece(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color == color; }
 
     inline bool isCapture(MoveType type) const;
-    
+
     void updateDangers();
     void UpdatePawnDangers(short row, short col, PieceColor color);
     void UpdateKnightDangers(short row, short col, PieceColor color);
@@ -80,7 +79,6 @@ private:
     void UpdateBishopDangers(short row, short col, PieceColor color);
     void UpdateQueenDangers(short row, short col, PieceColor color);
 
-    void updateLegalMoves();
     void UpdatePawnMoves(short row, short col, PieceColor color);
     void UpdateKnightMoves(short row, short col, PieceColor color);
     void UpdateRookMoves(short row, short col, PieceColor color);

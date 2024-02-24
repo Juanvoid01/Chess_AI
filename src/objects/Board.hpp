@@ -12,14 +12,15 @@ public:
     void Render();
 
     void Clear();
-    void LoadFEN(const std::string& FEN);
+    void LoadFEN(const std::string &FEN);
     void Translate(float x, float y);
     void SetScale(float x, float y);
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
 
     void ClickEvent(float mouseX, float mouseY);
-
+    void KeyEvent(char key);
+    
 private:
     std::unique_ptr<Object> resultText;
     bool renderResult = false;
@@ -30,8 +31,11 @@ private:
     int rowSelected = -1;
     int colSelected = -1;
 
+    int numLegalMoves = 0;
+    MoveArray legalMoves;
+
     PieceType promoPiece = PieceType::QUEEN;
-    
+
     ChessEngine chessEngine;
 
     void CopyBoardFromEngine();
@@ -55,8 +59,8 @@ private:
     inline void UnSelectPos(int row, int col) { return squares[row][col]->UnSelect(); }
 
     void checkResult();
-    
+
     void SelectLastMove();
-    
+
     void UnSelectBoard();
 };
