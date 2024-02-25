@@ -23,6 +23,7 @@ int main()
     //PerftTestPos4();
     //PerftTestPos4Mirror();
     //PerftTestMoveInfo(FEN_KIWIPETE);
+    //PerftTestStrangeMoves();
 
     return 0;
 }

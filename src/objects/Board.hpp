@@ -2,6 +2,7 @@
 
 #include "Square.hpp"
 #include "ChessEngine.hpp"
+#include "PromotionSelector.hpp"
 #include <vector>
 
 class Board : public Object
@@ -34,9 +35,11 @@ private:
     int numLegalMoves = 0;
     MoveArray legalMoves;
 
-    PieceType promoPiece = PieceType::QUEEN;
+    PieceType promoPiece = PieceType::EMPTY;
 
     ChessEngine chessEngine;
+
+    std::unique_ptr<PromotionSelector> promotionSelector;
 
     void CopyBoardFromEngine();
     void MovePiece(Move move);
@@ -63,4 +66,6 @@ private:
     void SelectLastMove();
 
     void UnSelectBoard();
+
+    Move FindMoveSelected(short iniRow, short iniCol, short finalRow, short finalCol);
 };

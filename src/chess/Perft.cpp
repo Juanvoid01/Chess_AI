@@ -150,6 +150,15 @@ void PerftTestPos4Mirror()
     runCorrectnessTest(results, 6);
 }
 
+void PerftTestStrangeMoves()
+{
+    chessEngine.LoadFEN(FEN_STRANGEMOVES);
+
+    unsigned long long int results[7] = {1, 44, 1777, 65325, 2613058, 91671532, 0};
+
+    runCorrectnessTest(results, 5);
+}
+
 void runCorrectnessTest(const unsigned long long int correctResults[7], int MaxDepth)
 {
     std::cout << "\nRunning Perft Test :\n\n";

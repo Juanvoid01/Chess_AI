@@ -7,6 +7,7 @@
 #define FEN_EDWARDS2 "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
 #define FEN_TEST4 "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"
 #define FEN_TEST4_MIRROR "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1"
+#define FEN_STRANGEMOVES "r3k2r/p1pppp1p/N3Q3/qpP1KN2/6p1/8/Pp2p1pP/R6R w kq b6 0 2"
 
 void PerftTest(const std::string &FEN, unsigned int depth);
 
@@ -23,3 +24,5 @@ void PerftTestEdwards2();
 void PerftTestPos4();
 
 void PerftTestPos4Mirror();
+
+void PerftTestStrangeMoves();

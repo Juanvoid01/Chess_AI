@@ -17,6 +17,8 @@ Board::Board(float posX, float posY, float width, float height, const Renderer &
 
     resultText = std::make_unique<Object>(r, TextureName::CHECKMATE, posX + squareWidth * 3.f, posY + height, squareWidth * 2, squareWidth);
     CopyBoardFromEngine();
+
+    promotionSelector = std::make_unique<PromotionSelector>(r, posX, posY, squareWidth, squareHeight);
 }
 
 Board::~Board()
@@ -37,6 +39,9 @@ void Board::Render()
 
     if (renderResult)
         resultText->Render();
+
+    if (promotionSelector->IsInSelection())
+        promotionSelector->Render();
 }
 
 void Board::Clear()
@@ -68,6 +73,8 @@ void Board::Translate(float x, float y)
         }
     }
     resultText->Translate(x, y);
+
+    promotionSelector->Translate(x, y);
 }
 void Board::SetScale(float x, float y)
 {
@@ -85,6 +92,8 @@ void Board::SetScale(float x, float y)
         }
     }
     resultText->SetScale(x, y);
+
+    promotionSelector->SetScale(x, y, squareWidth, squareHeight);
 }
 void Board::SetPosition(float x, float y)
 {
@@ -98,6 +107,8 @@ void Board::SetPosition(float x, float y)
         }
     }
     resultText->SetPosition(GetX() + squareWidth * 3.f, GetY() + GetHeight());
+
+    promotionSelector->SetPosition(GetX(), GetY());
 }
 void Board::SetCenter(float x, float y)
 {
@@ -111,10 +122,24 @@ void Board::SetCenter(float x, float y)
         }
     }
     resultText->SetPosition(GetX() + squareWidth * 3.f, GetY() + GetHeight());
+
+    promotionSelector->SetCenter(GetX(), GetY());
 }
 
 void Board::ClickEvent(float mouseX, float mouseY)
 {
+    if (promotionSelector->IsInSelection())
+    {
+        promoPiece = promotionSelector->GetSelectedPiece(mouseX, mouseY);
+
+        Move selectedMove = FindMoveSelected(rowSelected, colSelected, promotionSelector->endRow, promotionSelector->endCol);
+
+        MovePiece(selectedMove);
+
+        pieceSelected = false;
+        return;
+    }
+
     if (!PosInside(mouseX, mouseY))
     {
         pieceSelected = false;
@@ -131,56 +156,21 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
     if (pieceSelected)
     {
-        pieceSelected = false;
-
-        if (squares[row][col]->IsSelected())
+        if (squares[rowSelected][colSelected]->GetPiece() == PieceType::PAWN)
         {
-            chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
-            for (int i = 0; i < numLegalMoves; i++)
+            if (row == 7 || row == 0)
             {
-                if (legalMoves[i].endRow == row && legalMoves[i].endCol == col &&
-                    legalMoves[i].iniRow == rowSelected && legalMoves[i].iniCol == colSelected)
-                {
-                    if (legalMoves[i].type == MoveType::QUEENPROMOTION || legalMoves[i].type == MoveType::QUEENPROMOCAPTURE)
-                    {
-                        if (promoPiece == PieceType::QUEEN)
-                        {
-                            MovePiece(legalMoves[i]);
-                            break;
-                        }
-                    }
-                    else if (legalMoves[i].type == MoveType::KNIGHTPROMOTION || legalMoves[i].type == MoveType::KNIGHTPROMOCAPTURE)
-                    {
-                        if (promoPiece == PieceType::KNIGHT)
-                        {
-                            MovePiece(legalMoves[i]);
-                            break;
-                        }
-                    }
-                    else if (legalMoves[i].type == MoveType::BISHOPPROMOTION || legalMoves[i].type == MoveType::BISHOPPROMOCAPTURE)
-                    {
-                        if (promoPiece == PieceType::BISHOP)
-                        {
-                            MovePiece(legalMoves[i]);
-                            break;
-                        }
-                    }
-                    else if (legalMoves[i].type == MoveType::ROOKPROMOTION || legalMoves[i].type == MoveType::ROOKPROMOCAPTURE)
-                    {
-                        if (promoPiece == PieceType::ROOK)
-                        {
-                            MovePiece(legalMoves[i]);
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        MovePiece(legalMoves[i]);
-                        break;
-                    }
-                }
+                promotionSelector->StartSelection(row, col);
+                return;
             }
         }
+
+        pieceSelected = false;
+
+        Move selectedMove = FindMoveSelected(rowSelected, colSelected, row, col);
+
+        if (selectedMove.iniRow != -1)
+            MovePiece(selectedMove);
 
         UnSelectBoard();
     }
@@ -207,12 +197,11 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
 void Board::KeyEvent(char key)
 {
-    if(key == 'x' || key == 'X')
+    if (key == 'x' || key == 'X')
     {
-        chessEngine.UnMakeMove(chessEngine.GetLastMove(),chessEngine.GetStateInfo());
+        chessEngine.UnMakeMove(chessEngine.GetLastMove(), chessEngine.GetStateInfo());
         CopyBoardFromEngine();
     }
-    
 }
 
 void Board::MovePiece(Move move)
@@ -311,6 +300,62 @@ void Board::UnSelectBoard()
         }
     }
     SelectLastMove();
+}
+
+Move Board::FindMoveSelected(short iniRow, short iniCol, short finalRow, short finalCol)
+{
+    Move selectedMove = Move(-1, -1, -1, -1, MoveType::QUIET);
+
+    if (squares[finalRow][finalCol]->IsSelected())
+    {
+        chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+        for (int i = 0; i < numLegalMoves; i++)
+        {
+            if (legalMoves[i].endRow == finalRow && legalMoves[i].endCol == finalCol &&
+                legalMoves[i].iniRow == rowSelected && legalMoves[i].iniCol == colSelected)
+            {
+                if (legalMoves[i].type == MoveType::QUEENPROMOTION || legalMoves[i].type == MoveType::QUEENPROMOCAPTURE)
+                {
+                    if (promoPiece == PieceType::QUEEN)
+                    {
+                        selectedMove = legalMoves[i];
+                        break;
+                    }
+                }
+                else if (legalMoves[i].type == MoveType::KNIGHTPROMOTION || legalMoves[i].type == MoveType::KNIGHTPROMOCAPTURE)
+                {
+                    if (promoPiece == PieceType::KNIGHT)
+                    {
+                        selectedMove = legalMoves[i];
+                        break;
+                    }
+                }
+                else if (legalMoves[i].type == MoveType::BISHOPPROMOTION || legalMoves[i].type == MoveType::BISHOPPROMOCAPTURE)
+                {
+                    if (promoPiece == PieceType::BISHOP)
+                    {
+                        selectedMove = legalMoves[i];
+                        break;
+                    }
+                }
+                else if (legalMoves[i].type == MoveType::ROOKPROMOTION || legalMoves[i].type == MoveType::ROOKPROMOCAPTURE)
+                {
+                    if (promoPiece == PieceType::ROOK)
+                    {
+                        selectedMove = legalMoves[i];
+                        break;
+                    }
+                }
+                else
+                {
+                    selectedMove = legalMoves[i];
+                    break;
+                }
+            }
+        }
+    }
+
+    return selectedMove;
 }
 
 void Board::checkResult()
