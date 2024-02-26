@@ -9,11 +9,11 @@
 
 typedef std::array<Move, MAX_MOVES> MoveArray;
 
-class ChessEngine
+class MoveGenerator
 {
 public:
-    ChessEngine(const std::string &FEN = FEN_START_POS);
-    ~ChessEngine() {}
+    MoveGenerator(const std::string &FEN = FEN_START_POS);
+    ~MoveGenerator() {}
 
     void SetInitialPosition();
     void ClearBoard();

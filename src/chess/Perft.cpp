@@ -1,5 +1,5 @@
 #include "Perft.hpp"
-#include "ChessEngine.hpp"
+#include "MoveGenerator.hpp"
 
 #include <iostream>
 #include <chrono>
@@ -13,7 +13,7 @@
 #define CYANCOLOR "\033[36m"
 #define WHITECOLOR "\033[37m"
 
-static ChessEngine chessEngine;
+static MoveGenerator moveGenerator;
 
 unsigned long long int Perft(unsigned int depth);
 unsigned long long int PerftMoveInfo(unsigned int depth);
@@ -22,7 +22,7 @@ void runCorrectnessTest(const unsigned long long int correctResults[7], int MaxD
 
 void PerftTest(const std::string &FEN, unsigned int depth)
 {
-    chessEngine.LoadFEN(FEN);
+    moveGenerator.LoadFEN(FEN);
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -37,7 +37,7 @@ void PerftTest(const std::string &FEN, unsigned int depth)
 
 void PerftTestMoveInfo(const std::string &FEN, int depth)
 {
-    chessEngine.LoadFEN(FEN);
+    moveGenerator.LoadFEN(FEN);
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -58,14 +58,14 @@ unsigned long long int Perft(unsigned int depth)
     unsigned long long int nodes = 0;
     MoveArray moves;
     int n_moves = 0;
-    chessEngine.GetLegalMoves(moves, n_moves);
-    PosStateInfo posInfoState = chessEngine.GetStateInfo();
+    moveGenerator.GetLegalMoves(moves, n_moves);
+    PosStateInfo posInfoState = moveGenerator.GetStateInfo();
 
     for (int i = 0; i < n_moves; i++)
     {
-        chessEngine.MakeMove(moves[i]);
+        moveGenerator.MakeMove(moves[i]);
         nodes += Perft(depth - 1);
-        chessEngine.UnMakeMove(moves[i], posInfoState);
+        moveGenerator.UnMakeMove(moves[i], posInfoState);
     }
     return nodes;
 }
@@ -79,16 +79,16 @@ unsigned long long int PerftMoveInfo(unsigned int depth)
 
     MoveArray moves;
     int n_moves = 0;
-    chessEngine.GetLegalMoves(moves, n_moves);
+    moveGenerator.GetLegalMoves(moves, n_moves);
 
-    PosStateInfo posInfoState = chessEngine.GetStateInfo();
+    PosStateInfo posInfoState = moveGenerator.GetStateInfo();
 
     for (int i = 0; i < n_moves; i++)
     {
-        chessEngine.MakeMove(moves[i]);
+        moveGenerator.MakeMove(moves[i]);
         unsigned long long int newNodes = Perft(depth - 1);
         nodes += newNodes;
-        chessEngine.UnMakeMove(moves[i], posInfoState);
+        moveGenerator.UnMakeMove(moves[i], posInfoState);
 
         std::cout << moves[i].ToBasicString() << ": " << newNodes << '\n';
     }
@@ -98,7 +98,7 @@ unsigned long long int PerftMoveInfo(unsigned int depth)
 void PerftTestIniPos()
 {
 
-    chessEngine.LoadFEN(FEN_START_POS);
+    moveGenerator.LoadFEN(FEN_START_POS);
 
     unsigned long long int results[7] = {1, 20, 400, 8902, 197281, 4865609, 119060324};
 
@@ -107,7 +107,7 @@ void PerftTestIniPos()
 
 void PerftTestKiwipete()
 {
-    chessEngine.LoadFEN(FEN_KIWIPETE);
+    moveGenerator.LoadFEN(FEN_KIWIPETE);
 
     unsigned long long int results[7] = {1, 48, 2039, 97862, 4085603, 193690690, 8031647685};
 
@@ -116,7 +116,7 @@ void PerftTestKiwipete()
 
 void PerftTestTalkchess()
 {
-    chessEngine.LoadFEN(FEN_TALKCHESS);
+    moveGenerator.LoadFEN(FEN_TALKCHESS);
 
     unsigned long long int results[7] = {1, 44, 1486, 62379, 2103487, 89941194, 0};
 
@@ -125,7 +125,7 @@ void PerftTestTalkchess()
 
 void PerftTestEdwards2()
 {
-    chessEngine.LoadFEN(FEN_EDWARDS2);
+    moveGenerator.LoadFEN(FEN_EDWARDS2);
 
     unsigned long long int results[7] = {1, 46, 2079, 89890, 3894594, 164075551, 0};
 
@@ -134,7 +134,7 @@ void PerftTestEdwards2()
 
 void PerftTestPos4()
 {
-    chessEngine.LoadFEN(FEN_TEST4);
+    moveGenerator.LoadFEN(FEN_TEST4);
 
     unsigned long long int results[7] = {1, 6, 264, 9467, 422333, 15833292, 706045033};
 
@@ -143,7 +143,7 @@ void PerftTestPos4()
 
 void PerftTestPos4Mirror()
 {
-    chessEngine.LoadFEN(FEN_TEST4_MIRROR);
+    moveGenerator.LoadFEN(FEN_TEST4_MIRROR);
 
     unsigned long long int results[7] = {1, 6, 264, 9467, 422333, 15833292, 706045033};
 
@@ -152,7 +152,7 @@ void PerftTestPos4Mirror()
 
 void PerftTestStrangeMoves()
 {
-    chessEngine.LoadFEN(FEN_STRANGEMOVES);
+    moveGenerator.LoadFEN(FEN_STRANGEMOVES);
 
     unsigned long long int results[7] = {1, 44, 1777, 65325, 2613058, 91671532, 0};
 

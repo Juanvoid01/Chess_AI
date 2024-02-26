@@ -1,12 +1,12 @@
-#include "ChessEngine.hpp"
+#include "MoveGenerator.hpp"
 #include <iostream>
 
-ChessEngine::ChessEngine(const std::string &FEN)
+MoveGenerator::MoveGenerator(const std::string &FEN)
 {
     LoadFEN(FEN);
 }
 
-void ChessEngine::SetInitialPosition()
+void MoveGenerator::SetInitialPosition()
 {
     for (short row = 2; row < 6; row++)
     {
@@ -53,7 +53,7 @@ void ChessEngine::SetInitialPosition()
     stateInfo.rookQMovedB = false;
 };
 
-void ChessEngine::ClearBoard()
+void MoveGenerator::ClearBoard()
 {
     for (short row = 0; row < 8; row++)
     {
@@ -64,7 +64,7 @@ void ChessEngine::ClearBoard()
     }
 }
 
-void ChessEngine::MakeMove(Move move)
+void MoveGenerator::MakeMove(Move move)
 {
 
     stateInfo.capturedPiece = pieces[move.endRow][move.endCol];
@@ -168,7 +168,7 @@ void ChessEngine::MakeMove(Move move)
     stateInfo.lastMove = move;
 }
 
-void ChessEngine::UnMakeMove(Move move, const PosStateInfo &lastStateInfo)
+void MoveGenerator::UnMakeMove(Move move, const PosStateInfo &lastStateInfo)
 {
    
     if (move.type == MoveType::KINGCASTLE)
@@ -222,17 +222,17 @@ void ChessEngine::UnMakeMove(Move move, const PosStateInfo &lastStateInfo)
     stateInfo = lastStateInfo;
 }
 
-bool ChessEngine::IsCheckMate() const
+bool MoveGenerator::IsCheckMate() const
 {
     return numLegalMoves == 0 && checkersNum > 0;
 }
 
-bool ChessEngine::IsStaleMate() const
+bool MoveGenerator::IsStaleMate() const
 {
     return numLegalMoves == 0 && checkersNum == 0;
 }
 
-void ChessEngine::LoadFEN(const std::string &fen)
+void MoveGenerator::LoadFEN(const std::string &fen)
 {
     stateInfo.kingRowW = -1, stateInfo.kingColW = -1;
     stateInfo.kingRowB = -1, stateInfo.kingColB = -1;
@@ -381,7 +381,7 @@ void ChessEngine::LoadFEN(const std::string &fen)
     }
 }
 
-inline bool ChessEngine::isCapture(MoveType type) const
+inline bool MoveGenerator::isCapture(MoveType type) const
 {
     return type == MoveType::CAPTURE ||
            type == MoveType::KNIGHTPROMOCAPTURE ||
@@ -391,7 +391,7 @@ inline bool ChessEngine::isCapture(MoveType type) const
            type == MoveType::ENPASSANT;
 }
 
-void ChessEngine::updateDangers()
+void MoveGenerator::updateDangers()
 {
 
     PieceColor color;
@@ -432,7 +432,7 @@ void ChessEngine::updateDangers()
     }
 };
 
-void ChessEngine::UpdatePawnDangers(short row, short col, PieceColor color)
+void MoveGenerator::UpdatePawnDangers(short row, short col, PieceColor color)
 {
     short dir = color == PieceColor::WHITE ? 1 : -1;
 
@@ -461,7 +461,7 @@ void ChessEngine::UpdatePawnDangers(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateRookDangers(short row, short col, PieceColor color)
+void MoveGenerator::UpdateRookDangers(short row, short col, PieceColor color)
 {
     bool attack = true;
     bool danger = true;
@@ -667,7 +667,7 @@ void ChessEngine::UpdateRookDangers(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateKnightDangers(short row, short col, PieceColor color)
+void MoveGenerator::UpdateKnightDangers(short row, short col, PieceColor color)
 {
     if (ValidPos(row + 1, col + 2))
     {
@@ -752,7 +752,7 @@ void ChessEngine::UpdateKnightDangers(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateKingDangers(short row, short col, PieceColor color)
+void MoveGenerator::UpdateKingDangers(short row, short col, PieceColor color)
 {
     short destRow = 0, destCol = 0;
 
@@ -771,7 +771,7 @@ void ChessEngine::UpdateKingDangers(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
+void MoveGenerator::UpdateBishopDangers(short row, short col, PieceColor color)
 {
 
     bool danger = true;
@@ -976,13 +976,13 @@ void ChessEngine::UpdateBishopDangers(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateQueenDangers(short row, short col, PieceColor color)
+void MoveGenerator::UpdateQueenDangers(short row, short col, PieceColor color)
 {
     UpdateRookDangers(row, col, color);
     UpdateBishopDangers(row, col, color);
 }
 
-void ChessEngine::GetLegalMoves(MoveArray &moves, int &numMoves)
+void MoveGenerator::GetLegalMoves(MoveArray &moves, int &numMoves)
 {
     numLegalMoves = 0;
     legalMoves = &moves;
@@ -1041,7 +1041,7 @@ void ChessEngine::GetLegalMoves(MoveArray &moves, int &numMoves)
     numMoves = numLegalMoves;
 }
 
-void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
+void MoveGenerator::UpdatePawnMoves(short row, short col, PieceColor color)
 {
     short dir = color == PieceColor::WHITE ? +1 : -1;
     short startRow = color == PieceColor::WHITE ? 1 : 6;
@@ -1131,7 +1131,7 @@ void ChessEngine::UpdatePawnMoves(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
+void MoveGenerator::UpdateKnightMoves(short row, short col, PieceColor color)
 {
     short destRow = row + 1, destCol = col + 2;
 
@@ -1246,7 +1246,7 @@ void ChessEngine::UpdateKnightMoves(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
+void MoveGenerator::UpdateRookMoves(short row, short col, PieceColor color)
 {
 
     for (short i = row + 1; i < 8; i++)
@@ -1330,7 +1330,7 @@ void ChessEngine::UpdateRookMoves(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateKingMoves(short row, short col, PieceColor color)
+void MoveGenerator::UpdateKingMoves(short row, short col, PieceColor color)
 {
     short destRow = 0, destCol = 0;
     for (short i = -1; i <= 1; i++)
@@ -1359,7 +1359,7 @@ void ChessEngine::UpdateKingMoves(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
+void MoveGenerator::UpdateBishopMoves(short row, short col, PieceColor color)
 {
 
     short i = row + 1, j = col + 1;
@@ -1455,13 +1455,13 @@ void ChessEngine::UpdateBishopMoves(short row, short col, PieceColor color)
     }
 }
 
-void ChessEngine::UpdateQueenMoves(short row, short col, PieceColor color)
+void MoveGenerator::UpdateQueenMoves(short row, short col, PieceColor color)
 {
     UpdateRookMoves(row, col, color);
     UpdateBishopMoves(row, col, color);
 }
 
-void ChessEngine::UpdateCastleMoves(PieceColor color)
+void MoveGenerator::UpdateCastleMoves(PieceColor color)
 {
     if (checkersNum > 0) // check
     {
@@ -1528,7 +1528,7 @@ void ChessEngine::UpdateCastleMoves(PieceColor color)
     }
 }
 
-bool ChessEngine::IsSlider(short row, short col) const
+bool MoveGenerator::IsSlider(short row, short col) const
 {
     switch (pieces[row][col].type)
     {
@@ -1556,7 +1556,7 @@ bool ChessEngine::IsSlider(short row, short col) const
     }
 }
 
-void ChessEngine::UpdateCheck()
+void MoveGenerator::UpdateCheck()
 {
 
     short kingRow = stateInfo.turn == PieceColor::WHITE ? stateInfo.kingRowW : stateInfo.kingRowB;
@@ -1599,7 +1599,7 @@ void ChessEngine::UpdateCheck()
     }
 }
 
-bool ChessEngine::IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short destRow, short destCol) const
+bool MoveGenerator::IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short destRow, short destCol) const
 {
 
     if (!GetPinnedPiece(pieceRow, pieceCol))
@@ -1639,7 +1639,7 @@ bool ChessEngine::IsPinnedPieceLegalMove(short pieceRow, short pieceCol, short d
     return isLegal;
 }
 
-bool ChessEngine::isValidEnPassant(short pieceRow, short pieceCol, short destRow, short destCol) const
+bool MoveGenerator::isValidEnPassant(short pieceRow, short pieceCol, short destRow, short destCol) const
 {
     if (!IsPinnedPieceLegalMove(pieceRow, pieceCol, destRow, destCol))
     {

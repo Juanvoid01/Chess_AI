@@ -60,7 +60,7 @@ void Board::Clear()
 // set up the chess position on the FEN, then updates the board view
 void Board::LoadFEN(const std::string &FEN)
 {
-    chessEngine.LoadFEN(FEN);
+    moveGenerator.LoadFEN(FEN);
     CopyBoardFromEngine();
     UpdateLegalMoves();
 }
@@ -206,7 +206,7 @@ void Board::KeyEvent(char key)
 {
     if (key == 'x' || key == 'X')
     {
-        chessEngine.UnMakeMove(chessEngine.GetLastMove(), chessEngine.GetStateInfo());
+        moveGenerator.UnMakeMove(moveGenerator.GetLastMove(), moveGenerator.GetStateInfo());
         CopyBoardFromEngine();
     }
     else if (key == 'r' || key == 'R')
@@ -226,7 +226,7 @@ void Board::MakeMove(Move move)
     if (move.iniRow == move.endRow && move.iniCol == move.endCol)
         return;
 
-    chessEngine.MakeMove(move);
+    moveGenerator.MakeMove(move);
     CopyBoardFromEngine();
     checkResult();
     UpdateLegalMoves();
@@ -235,7 +235,7 @@ void Board::MakeMove(Move move)
 // highlights the last move played
 void Board::SelectLastMove()
 {
-    Move move = chessEngine.GetLastMove();
+    Move move = moveGenerator.GetLastMove();
 
     if (move.iniCol == -1)
         return;
@@ -354,7 +354,7 @@ inline void Board::GetSquareClicked(float mouseX, float mouseY, short &row, shor
 // calls the moveGenerator and stores the legal moves in an array.
 inline void Board::UpdateLegalMoves()
 {
-    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+    moveGenerator.GetLegalMoves(legalMoves, numLegalMoves);
 }
 
 // highlights all squares which a piece could move from row, col coords
@@ -376,12 +376,12 @@ int Board::SelectLegalMovesFrom(short pieceRow, short pieceCol)
 // check if game finishes and shows game ending messages
 void Board::checkResult()
 {
-    if (chessEngine.IsCheckMate())
+    if (moveGenerator.IsCheckMate())
     {
         renderResult = true;
         resultText->SetTexture(TextureName::CHECKMATE);
     }
-    else if (chessEngine.IsStaleMate())
+    else if (moveGenerator.IsStaleMate())
     {
         renderResult = true;
         resultText->SetTexture(TextureName::STALEMATE);
@@ -392,7 +392,7 @@ void Board::checkResult()
     }
 }
 
-// brings all pieces in chessEngine to the board in screen, it considers rotation
+// brings all pieces in moveGenerator to the board in screen, it considers rotation
 void Board::CopyBoardFromEngine()
 {
     for (int row = 0; row < 8; row++)
@@ -401,11 +401,11 @@ void Board::CopyBoardFromEngine()
         {
             if (!rotated)
             {
-                squares[row][col]->PutPiece(chessEngine.GetPiece(row, col).type, chessEngine.GetPiece(row, col).color);
+                squares[row][col]->PutPiece(moveGenerator.GetPiece(row, col).type, moveGenerator.GetPiece(row, col).color);
             }
             else
             {
-                squares[7 - row][7 - col]->PutPiece(chessEngine.GetPiece(row, col).type, chessEngine.GetPiece(row, col).color);
+                squares[7 - row][7 - col]->PutPiece(moveGenerator.GetPiece(row, col).type, moveGenerator.GetPiece(row, col).color);
             }
         }
     }

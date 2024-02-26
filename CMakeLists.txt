@@ -39,7 +39,7 @@ src/objects/Board.cpp
 src/objects/Move.cpp
 src/objects/PieceType.hpp
 src/objects/PromotionSelector.hpp
-src/chess/ChessEngine.cpp
+src/chess/MoveGenerator.cpp
 src/chess/Perft.cpp
 )
 
