@@ -2,9 +2,11 @@
 
 #include "PieceType.hpp"
 #include <string>
+#include <array>
 
 enum class MoveType
 {
+    INVALID = -1,
     QUIET = 0,
     KINGCASTLE = 1,
     QUEENCASTLE = 2,
@@ -86,6 +88,8 @@ struct PosStateInfo
     short kingRowB;
     short kingColB;
 
+    bool check;
+
     PosStateInfo &operator=(const PosStateInfo &other)
     {
         if (this != &other)
@@ -105,7 +109,10 @@ struct PosStateInfo
             kingColW = other.kingColW;
             kingRowB = other.kingRowB;
             kingColB = other.kingColB;
+            check = other.check;
         }
         return *this;
     }
 };
+
+typedef std::array<std::array<PieceInfo, 8>, 8> PieceArray;

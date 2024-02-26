@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Square.hpp"
-#include "MoveGenerator.hpp"
+#include "ChessAI.hpp"
 #include "PromotionSelector.hpp"
 #include <vector>
 
@@ -47,6 +47,8 @@ private:
     PieceType promoPiece = PieceType::EMPTY;
 
     MoveGenerator moveGenerator;
+
+    ChessAI chessAI;
 
     std::unique_ptr<PromotionSelector> promotionSelector;
 

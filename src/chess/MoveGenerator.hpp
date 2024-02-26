@@ -29,9 +29,12 @@ public:
     inline int GetMoveCounter() const { return stateInfo.moveCounter; }
     inline const PosStateInfo &GetStateInfo() const { return stateInfo; }
 
-    void GetLegalMoves(MoveArray& moves, int& numMoves);
+    inline const PieceArray &GetPieceArray() const { return pieces; }
+    inline PieceColor GetTurn() const { return stateInfo.turn; }
+    void GetLegalMoves(MoveArray &moves, int &numMoves);
+
 private:
-    MoveArray* legalMoves;
+    MoveArray *legalMoves;
     int numLegalMoves;
 
     std::bitset<64> kingDangerSquares;
@@ -40,7 +43,7 @@ private:
     std::bitset<64> pushMask;
     std::bitset<64> pinnedPieces;
 
-    std::array<std::array<PieceInfo, 8>, 8> pieces;
+    PieceArray pieces;
 
     PosStateInfo stateInfo;
 

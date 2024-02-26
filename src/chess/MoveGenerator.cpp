@@ -224,12 +224,12 @@ void MoveGenerator::UnMakeMove(Move move, const PosStateInfo &lastStateInfo)
 
 bool MoveGenerator::IsCheckMate() const
 {
-    return numLegalMoves == 0 && checkersNum > 0;
+    return numLegalMoves == 0 && stateInfo.check;
 }
 
 bool MoveGenerator::IsStaleMate() const
 {
-    return numLegalMoves == 0 && checkersNum == 0;
+    return numLegalMoves == 0 && !stateInfo.check;
 }
 
 void MoveGenerator::LoadFEN(const std::string &fen)
@@ -1039,6 +1039,7 @@ void MoveGenerator::GetLegalMoves(MoveArray &moves, int &numMoves)
     }
 
     numMoves = numLegalMoves;
+    stateInfo.check = checkersNum > 0;
 }
 
 void MoveGenerator::UpdatePawnMoves(short row, short col, PieceColor color)

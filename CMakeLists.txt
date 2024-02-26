@@ -36,13 +36,15 @@ src/utils/EventManager.cpp
 src/objects/Piece.cpp
 src/objects/Square.cpp
 src/objects/Board.cpp
-src/objects/Move.cpp
-src/objects/PieceType.hpp
+src/chess/Move.cpp
+src/chess/PieceType.hpp
 src/objects/PromotionSelector.hpp
 src/chess/MoveGenerator.cpp
+src/chess/Evaluator.cpp
+src/chess/ChessAI.cpp
 src/chess/Perft.cpp
 )
 
-target_compile_options(chess_AI PRIVATE -g)
+target_compile_options(chess_AI PRIVATE -g -O3)
 
 target_link_libraries(chess_AI ${OPENGL_LIBRARIES} GLEW::GLEW glfw)

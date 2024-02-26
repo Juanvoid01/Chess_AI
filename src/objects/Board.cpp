@@ -148,6 +148,7 @@ void Board::ClickEvent(float mouseX, float mouseY)
         MakeMove(selectedMove);
 
         pieceSelected = false;
+
         return;
     }
 
@@ -218,6 +219,12 @@ void Board::KeyEvent(char key)
         UnSelectBoard();
         SelectLastMove();
     }
+    else if (key == 'p' || key == 'P')
+    {
+        Move moveAI = chessAI.GetBestMove(moveGenerator);
+
+        MakeMove(moveAI);
+    }
 }
 
 // executes a move in the moveGenerator, then updates the legal moves and the board
@@ -228,8 +235,8 @@ void Board::MakeMove(Move move)
 
     moveGenerator.MakeMove(move);
     CopyBoardFromEngine();
-    checkResult();
     UpdateLegalMoves();
+    checkResult();
 }
 
 // highlights the last move played

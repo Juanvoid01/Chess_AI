@@ -47,7 +47,7 @@ void Viewer::run()
 
         std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight);
         std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer);
-        board->LoadFEN("r3k2r/p1pppp1p/N3Q3/qpP1KN2/6p1/8/Pp2p1pP/R6R w kq b6 0 2");
+        //board->LoadFEN("r3k2r/p1pppp1p/N3Q3/qpP1KN2/6p1/8/Pp2p1pP/R6R w kq b6 0 2");
         EventManager eventManager(window, renderer, board);
 
         board->SetCenter(windowWidth / 2, windowHeight / 2);
