@@ -27,7 +27,7 @@ public:
     inline void SetTexture(TextureName newTexture) { textureName = newTexture; }
     inline void SetShader(ShaderName newShader) { shaderName = newShader; }
     inline void SetColor(float r, float g, float b, float a) { color = glm::vec4(r, g, b, a); }
-    inline void SetColor(const glm::vec4& newColor) { color = newColor; }
+    inline void SetColor(const glm::vec4 &newColor) { color = newColor; }
 
     inline float GetWidth() const { return width; }
     inline float GetHeight() const { return height; }
@@ -61,6 +61,7 @@ private:
     glm::vec3 positionVector;
     glm::vec3 translationVector;
     glm::vec3 scaleVector;
+    glm::vec3 rotationVector;
 
     glm::vec4 color;
 

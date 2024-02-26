@@ -17,7 +17,7 @@ Board::Board(float posX, float posY, float width, float height, const Renderer &
 
     resultText = std::make_unique<Object>(r, TextureName::CHECKMATE, posX + squareWidth * 3.f, posY + height, squareWidth * 2, squareWidth);
     CopyBoardFromEngine();
-
+    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
     promotionSelector = std::make_unique<PromotionSelector>(r, posX, posY, squareWidth, squareHeight);
 }
 
@@ -25,6 +25,7 @@ Board::~Board()
 {
 }
 
+// shows board on screen
 void Board::Render()
 {
     Object::Render();
@@ -44,6 +45,7 @@ void Board::Render()
         promotionSelector->Render();
 }
 
+// remove all pieces from the board
 void Board::Clear()
 {
     for (int row = 0; row < 8; row++)
@@ -55,10 +57,12 @@ void Board::Clear()
     }
 }
 
+// set up the chess position on the FEN, then updates the board view
 void Board::LoadFEN(const std::string &FEN)
 {
     chessEngine.LoadFEN(FEN);
     CopyBoardFromEngine();
+    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
 }
 
 void Board::Translate(float x, float y)
@@ -126,15 +130,22 @@ void Board::SetCenter(float x, float y)
     promotionSelector->SetCenter(GetX(), GetY());
 }
 
+// handle mouse inputs on the board, move pieces, promotion.
 void Board::ClickEvent(float mouseX, float mouseY)
 {
+    static int rowPieceSelected;
+    static int colPieceSelected;
+
     if (promotionSelector->IsInSelection())
     {
         promoPiece = promotionSelector->GetSelectedPiece(mouseX, mouseY);
 
-        Move selectedMove = FindMoveSelected(rowSelected, colSelected, promotionSelector->endRow, promotionSelector->endCol);
+        if (promoPiece == PieceType::EMPTY)
+            return;
 
-        MovePiece(selectedMove);
+        Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, promotionSelector->endRow, promotionSelector->endCol);
+
+        MakeMove(selectedMove);
 
         pieceSelected = false;
         return;
@@ -146,8 +157,8 @@ void Board::ClickEvent(float mouseX, float mouseY)
         return;
     }
 
-    int col = (mouseX - GetX()) / squareWidth;
-    int row = (mouseY - GetY()) / squareHeight;
+    short row, col;
+    GetSquareClicked(mouseX, mouseY, row, col);
 
     if (row < 0 || row >= 8 || col < 0 || col >= 8)
     {
@@ -156,21 +167,22 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
     if (pieceSelected)
     {
-        if (squares[rowSelected][colSelected]->GetPiece() == PieceType::PAWN)
+        if (squares[rowPieceSelected][colPieceSelected]->GetPiece() == PieceType::PAWN)
         {
-            if (row == 7 || row == 0)
+            if ((row == 7 || row == 0) && IsValidMove(rowPieceSelected, colPieceSelected, row, col))
             {
-                promotionSelector->StartSelection(row, col);
+                bool inTop = (row == 7 && !rotated) || (row == 0 && rotated);
+                promotionSelector->StartSelection(row, col, inTop);
                 return;
             }
         }
 
+        Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, row, col);
+
         pieceSelected = false;
 
-        Move selectedMove = FindMoveSelected(rowSelected, colSelected, row, col);
-
         if (selectedMove.iniRow != -1)
-            MovePiece(selectedMove);
+            MakeMove(selectedMove);
 
         UnSelectBoard();
     }
@@ -178,23 +190,19 @@ void Board::ClickEvent(float mouseX, float mouseY)
     {
         if (!PosEmpty(row, col))
         {
-            pieceSelected = true;
-            SelectPos(row, col);
-            rowSelected = row;
-            colSelected = col;
+            rowPieceSelected = row;
+            colPieceSelected = col;
 
-            chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
-            for (int i = 0; i < numLegalMoves; i++)
+            if (SelectLegalMovesFrom(rowPieceSelected, colPieceSelected) > 0)
             {
-                if (legalMoves[i].iniRow == rowSelected && legalMoves[i].iniCol == colSelected)
-                {
-                    SelectPos(legalMoves[i].endRow, legalMoves[i].endCol);
-                }
+                pieceSelected = true;
+                SelectSquare(row, col);
             }
         }
     }
 }
 
+// handle keyboard inputs on the board, rotation 'r'.
 void Board::KeyEvent(char key)
 {
     if (key == 'x' || key == 'X')
@@ -202,70 +210,30 @@ void Board::KeyEvent(char key)
         chessEngine.UnMakeMove(chessEngine.GetLastMove(), chessEngine.GetStateInfo());
         CopyBoardFromEngine();
     }
+    else if (key == 'r' || key == 'R')
+    {
+        if (promotionSelector->IsInSelection())
+            return;
+        rotated = !rotated;
+        CopyBoardFromEngine();
+        UnSelectBoard();
+        SelectLastMove();
+    }
 }
 
-void Board::MovePiece(Move move)
+// executes a move in the chessEngine, then updates the board
+void Board::MakeMove(Move move)
 {
     if (move.iniRow == move.endRow && move.iniCol == move.endCol)
         return;
 
-    if (move.type == MoveType::KINGCASTLE)
-    {
-
-        squares[move.endRow][move.endCol - 1]->PutPiece(PieceType::ROOK,
-                                                        GetPColor(move.iniRow, move.iniCol));
-        squares[move.endRow][7]->Clear();
-
-        squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
-                                                    GetPColor(move.iniRow, move.iniCol));
-    }
-    else if (move.type == MoveType::QUEENCASTLE)
-    {
-
-        squares[move.endRow][move.endCol + 1]->PutPiece(PieceType::ROOK,
-                                                        GetPColor(move.iniRow, move.iniCol));
-        squares[move.endRow][0]->Clear();
-
-        squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
-                                                    GetPColor(move.iniRow, move.iniCol));
-    }
-    else if (move.type == MoveType::ENPASSANT)
-    {
-
-        squares[move.iniRow][move.endCol]->Clear();
-
-        squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
-                                                    GetPColor(move.iniRow, move.iniCol));
-    }
-    else if (move.type == MoveType::QUEENPROMOTION || move.type == MoveType::QUEENPROMOCAPTURE)
-    {
-        squares[move.endRow][move.endCol]->PutPiece(PieceType::QUEEN, GetPColor(move.iniRow, move.iniCol));
-    }
-    else if (move.type == MoveType::KNIGHTPROMOTION || move.type == MoveType::KNIGHTPROMOCAPTURE)
-    {
-        squares[move.endRow][move.endCol]->PutPiece(PieceType::KNIGHT, GetPColor(move.iniRow, move.iniCol));
-    }
-    else if (move.type == MoveType::BISHOPPROMOTION || move.type == MoveType::BISHOPPROMOCAPTURE)
-    {
-        squares[move.endRow][move.endCol]->PutPiece(PieceType::BISHOP, GetPColor(move.iniRow, move.iniCol));
-    }
-    else if (move.type == MoveType::ROOKPROMOTION || move.type == MoveType::ROOKPROMOCAPTURE)
-    {
-        squares[move.endRow][move.endCol]->PutPiece(PieceType::ROOK, GetPColor(move.iniRow, move.iniCol));
-    }
-    else
-    {
-        squares[move.endRow][move.endCol]->PutPiece(GetPType(move.iniRow, move.iniCol),
-                                                    GetPColor(move.iniRow, move.iniCol));
-    }
-
-    squares[move.iniRow][move.iniCol]->Clear();
-
     chessEngine.MakeMove(move);
-
+    CopyBoardFromEngine();
     checkResult();
+    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
 }
 
+// highlights the last move played
 void Board::SelectLastMove()
 {
     Move move = chessEngine.GetLastMove();
@@ -290,67 +258,65 @@ void Board::SelectLastMove()
     }
 }
 
+// unselect all squares in the board
 void Board::UnSelectBoard()
 {
     for (int i = 0; i < 8; i++)
     {
         for (int j = 0; j < 8; j++)
         {
-            UnSelectPos(i, j);
+            UnSelectSquare(i, j);
         }
     }
     SelectLastMove();
 }
 
+// returns the move from initial square to final square, it considers the promotion selection
 Move Board::FindMoveSelected(short iniRow, short iniCol, short finalRow, short finalCol)
 {
     Move selectedMove = Move(-1, -1, -1, -1, MoveType::QUIET);
 
-    if (squares[finalRow][finalCol]->IsSelected())
+    for (int i = 0; i < numLegalMoves; i++)
     {
-        chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
-        for (int i = 0; i < numLegalMoves; i++)
+        if (legalMoves[i].endRow == finalRow && legalMoves[i].endCol == finalCol &&
+            legalMoves[i].iniRow == iniRow && legalMoves[i].iniCol == iniCol)
         {
-            if (legalMoves[i].endRow == finalRow && legalMoves[i].endCol == finalCol &&
-                legalMoves[i].iniRow == rowSelected && legalMoves[i].iniCol == colSelected)
+            if (legalMoves[i].type == MoveType::QUEENPROMOTION || legalMoves[i].type == MoveType::QUEENPROMOCAPTURE)
             {
-                if (legalMoves[i].type == MoveType::QUEENPROMOTION || legalMoves[i].type == MoveType::QUEENPROMOCAPTURE)
-                {
-                    if (promoPiece == PieceType::QUEEN)
-                    {
-                        selectedMove = legalMoves[i];
-                        break;
-                    }
-                }
-                else if (legalMoves[i].type == MoveType::KNIGHTPROMOTION || legalMoves[i].type == MoveType::KNIGHTPROMOCAPTURE)
-                {
-                    if (promoPiece == PieceType::KNIGHT)
-                    {
-                        selectedMove = legalMoves[i];
-                        break;
-                    }
-                }
-                else if (legalMoves[i].type == MoveType::BISHOPPROMOTION || legalMoves[i].type == MoveType::BISHOPPROMOCAPTURE)
-                {
-                    if (promoPiece == PieceType::BISHOP)
-                    {
-                        selectedMove = legalMoves[i];
-                        break;
-                    }
-                }
-                else if (legalMoves[i].type == MoveType::ROOKPROMOTION || legalMoves[i].type == MoveType::ROOKPROMOCAPTURE)
-                {
-                    if (promoPiece == PieceType::ROOK)
-                    {
-                        selectedMove = legalMoves[i];
-                        break;
-                    }
-                }
-                else
+                if (promoPiece == PieceType::QUEEN)
                 {
                     selectedMove = legalMoves[i];
                     break;
                 }
+            }
+            else if (legalMoves[i].type == MoveType::KNIGHTPROMOTION || legalMoves[i].type == MoveType::KNIGHTPROMOCAPTURE)
+            {
+                if (promoPiece == PieceType::KNIGHT)
+                {
+                    selectedMove = legalMoves[i];
+                    break;
+                }
+            }
+            else if (legalMoves[i].type == MoveType::BISHOPPROMOTION || legalMoves[i].type == MoveType::BISHOPPROMOCAPTURE)
+            {
+                if (promoPiece == PieceType::BISHOP)
+                {
+                    selectedMove = legalMoves[i];
+                    break;
+                }
+            }
+            else if (legalMoves[i].type == MoveType::ROOKPROMOTION || legalMoves[i].type == MoveType::ROOKPROMOCAPTURE)
+            {
+                if (promoPiece == PieceType::ROOK)
+                {
+                    selectedMove = legalMoves[i];
+                    break;
+                }
+            }
+            else
+            {
+                selectedMove = legalMoves[i];
+                break;
             }
         }
     }
@@ -358,6 +324,51 @@ Move Board::FindMoveSelected(short iniRow, short iniCol, short finalRow, short f
     return selectedMove;
 }
 
+// check if there is a legal move from initial square to final square
+bool Board::IsValidMove(short iniRow, short iniCol, short finalRow, short finalCol)
+{
+    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+    for (int i = 0; i < numLegalMoves; i++)
+    {
+        if (legalMoves[i].endRow == finalRow && legalMoves[i].endCol == finalCol &&
+            legalMoves[i].iniRow == iniRow && legalMoves[i].iniCol == iniCol)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// returns the coords of the square clicked, it considers rotation
+inline void Board::GetSquareClicked(float mouseX, float mouseY, short &row, short &col)
+{
+    col = (mouseX - GetX()) / squareWidth;
+    row = (mouseY - GetY()) / squareHeight;
+
+    if (rotated)
+    {
+        row = 7 - row;
+        col = 7 - col;
+    }
+}
+
+// highlights all squares which a piece could move from row, col coords
+int Board::SelectLegalMovesFrom(short pieceRow, short pieceCol)
+{
+    int numMovesSelected = 0;
+    for (int i = 0; i < numLegalMoves; i++)
+    {
+        if (legalMoves[i].iniRow == pieceRow && legalMoves[i].iniCol == pieceCol)
+        {
+            SelectSquare(legalMoves[i].endRow, legalMoves[i].endCol);
+            numMovesSelected++;
+        }
+    }
+
+    return numMovesSelected;
+}
+
+// check if game finishes and shows game ending messages
 void Board::checkResult()
 {
     if (chessEngine.IsCheckMate())
@@ -376,13 +387,104 @@ void Board::checkResult()
     }
 }
 
+// brings all pieces in chessEngine to the board in screen, it considers rotation
 void Board::CopyBoardFromEngine()
 {
     for (int row = 0; row < 8; row++)
     {
         for (int col = 0; col < 8; col++)
         {
-            squares[row][col]->PutPiece(chessEngine.GetPiece(row, col).type, chessEngine.GetPiece(row, col).color);
+            if (!rotated)
+            {
+                squares[row][col]->PutPiece(chessEngine.GetPiece(row, col).type, chessEngine.GetPiece(row, col).color);
+            }
+            else
+            {
+                squares[7 - row][7 - col]->PutPiece(chessEngine.GetPiece(row, col).type, chessEngine.GetPiece(row, col).color);
+            }
         }
     }
+}
+
+// returns the type of the piece in the square row, col, it considers rotation
+inline PieceType Board::GetPType(int rowPiece, int colPiece) const
+{
+    if (rotated)
+    {
+        rowPiece = 7 - rowPiece;
+        colPiece = 7 - colPiece;
+    }
+    return squares[rowPiece][colPiece]->GetPiece();
+}
+
+// returns the color of the piece in the square row, col, it considers rotation
+inline PieceColor Board::GetPColor(int rowPiece, int colPiece) const
+{
+    if (rotated)
+    {
+        rowPiece = 7 - rowPiece;
+        colPiece = 7 - colPiece;
+    }
+    return squares[rowPiece][colPiece]->GetPieceColor();
+}
+
+// checks if the coords are inside the board ( 0 to 7)
+inline bool Board::ValidPos(int row, int col) const
+{
+    return row >= 0 && row < 8 && col >= 0 && col < 8;
+}
+
+// returns true if in the square there is no piece, it considers rotation
+inline bool Board::PosEmpty(int row, int col) const
+{
+    if (rotated)
+    {
+        row = 7 - row;
+        col = 7 - col;
+    }
+
+    return squares[row][col]->IsEmpty();
+}
+
+// selects the square with coords row, col, it considers rotation
+inline void Board::SelectSquare(int row, int col)
+{
+    if (rotated)
+    {
+        row = 7 - row;
+        col = 7 - col;
+    }
+
+    if (!ValidPos(row, col))
+        return;
+
+    return squares[row][col]->Select();
+}
+
+// highlights the square with a last move color, it considers rotation
+inline void Board::SelectAsLastMove(int row, int col)
+{
+    if (rotated)
+    {
+        row = 7 - row;
+        col = 7 - col;
+    }
+
+    if (!ValidPos(row, col))
+        return;
+    return squares[row][col]->SelectAsLastMove();
+}
+
+// unselect square with coords row, col, it considers rotation
+inline void Board::UnSelectSquare(int row, int col)
+{
+    if (rotated)
+    {
+        row = 7 - row;
+        col = 7 - col;
+    }
+
+    if (!ValidPos(row, col))
+        return;
+    return squares[row][col]->UnSelect();
 }

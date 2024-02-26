@@ -10,18 +10,27 @@ class Board : public Object
 public:
     Board(float posX, float posY, float width, float height, const Renderer &r);
     ~Board();
+
+    // shows board on screen
     void Render();
 
+    // remove all pieces from the board
     void Clear();
+
+    // set up the chess position on the FEN, then updates the board view
     void LoadFEN(const std::string &FEN);
+
     void Translate(float x, float y);
     void SetScale(float x, float y);
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
 
+    // handle mouse inputs on the board, move pieces, promotion.
     void ClickEvent(float mouseX, float mouseY);
+
+    // handle keyboard inputs on the board, rotation 'r'.
     void KeyEvent(char key);
-    
+
 private:
     std::unique_ptr<Object> resultText;
     bool renderResult = false;
@@ -29,8 +38,8 @@ private:
     float squareWidth;
     float squareHeight;
     bool pieceSelected = false;
-    int rowSelected = -1;
-    int colSelected = -1;
+
+    bool rotated = false;
 
     int numLegalMoves = 0;
     MoveArray legalMoves;
@@ -41,31 +50,54 @@ private:
 
     std::unique_ptr<PromotionSelector> promotionSelector;
 
+    // brings all pieces in chessEngine to the board in screen, it considers rotation
     void CopyBoardFromEngine();
-    void MovePiece(Move move);
+
+    // executes a move in the chessEngine, then updates the board
+    void MakeMove(Move move);
 
     void SelectPiece(int row, int col);
     void UnSelectPiece();
 
-    inline PieceType GetPType(int row, int col) const { return squares[row][col]->GetPiece(); }
+    // returns the type of the piece in the square row, col, it considers rotation
+    inline PieceType GetPType(int rowPiece, int colPiece) const;
 
-    inline PieceColor GetPColor(int row, int col) const { return squares[row][col]->GetPieceColor(); }
+    // returns the color of the piece in the square row, col, it considers rotation
+    inline PieceColor GetPColor(int rowPiece, int colPiece) const;
 
-    inline bool ValidPos(int row, int col) const { return row >= 0 && row < 8 && col >= 0 && col < 8; }
+    // checks if the coords are inside the board ( 0 to 7)
+    inline bool ValidPos(int row, int col) const;
 
-    inline bool PosEmpty(int row, int col) const { return squares[row][col]->IsEmpty(); }
+    // returns true if in the square there is no piece, it considers rotation
+    inline bool PosEmpty(int row, int col) const;
 
-    inline void SelectPos(int row, int col) { return squares[row][col]->Select(); }
+    // selects the square with coords row, col, it considers rotation
+    inline void SelectSquare(int row, int col);
 
-    inline void SelectAsLastMove(int row, int col) { return squares[row][col]->SelectAsLastMove(); }
+    // highlights the square with a last move color, it considers rotation
+    inline void SelectAsLastMove(int row, int col);
 
-    inline void UnSelectPos(int row, int col) { return squares[row][col]->UnSelect(); }
+    // unselect square with coords row, col, it considers rotation
+    inline void UnSelectSquare(int row, int col);
 
+    // highlights all squares which a piece could move from row, col coords
+    int SelectLegalMovesFrom(short pieceRow, short pieceCol);
+
+    // check if game finishes and shows game ending messages
     void checkResult();
 
+    // highlights the last move played
     void SelectLastMove();
 
+    // unselect all squares in the board
     void UnSelectBoard();
 
+    // returns the move from initial square to final square, it considers the promotion selection
     Move FindMoveSelected(short iniRow, short iniCol, short finalRow, short finalCol);
+
+    // check if there is a legal move from initial square to final square
+    bool IsValidMove(short iniRow, short iniCol, short finalRow, short finalCol);
+
+    // returns the coords of the square clicked, it considers rotation
+    inline void GetSquareClicked(float mouseX, float mouseY, short &row, short &col);
 };

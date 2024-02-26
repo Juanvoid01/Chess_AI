@@ -5,7 +5,6 @@
 class PromotionSelector : public Object
 {
 public:
-
     short endRow;
     short endCol;
 
@@ -20,8 +19,10 @@ public:
 
     inline bool IsInSelection() const { return inSelection; }
 
-    void StartSelection(short endRow, short endCol)
+    void StartSelection(short endRow, short endCol, bool inTop)
     {
+        this->inTop = inTop;
+
         this->endRow = endRow;
         this->endCol = endCol;
 
@@ -36,7 +37,7 @@ public:
             return PieceType::EMPTY;
 
         inSelection = false;
-        
+
         if (mouseY < GetY() + squareHeight)
         {
             return PieceType::BISHOP;
@@ -86,7 +87,7 @@ public:
 
         AdjustPosition();
     }
-    
+
 private:
     float squareHeight;
     float squareWidth;
@@ -94,6 +95,17 @@ private:
     float boardY;
     bool inSelection;
     short colSelection;
+    bool inTop;
 
-    inline void AdjustPosition() { Object::SetPosition(boardX + colSelection * squareWidth, boardY + 4 * squareHeight); }
+    inline void AdjustPosition()
+    {
+        if (inTop)
+        {
+            Object::SetPosition(boardX + colSelection * squareWidth, boardY + 4 * squareHeight);
+        }
+        else
+        {
+            Object::SetPosition(boardX + colSelection * squareWidth, boardY);
+        }
+    }
 };
