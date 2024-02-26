@@ -53,7 +53,7 @@ private:
     // brings all pieces in chessEngine to the board in screen, it considers rotation
     void CopyBoardFromEngine();
 
-    // executes a move in the chessEngine, then updates the board
+    // executes a move in the moveGenerator, then updates the legal moves and the board
     void MakeMove(Move move);
 
     void SelectPiece(int row, int col);
@@ -100,4 +100,7 @@ private:
 
     // returns the coords of the square clicked, it considers rotation
     inline void GetSquareClicked(float mouseX, float mouseY, short &row, short &col);
+
+    // calls the moveGenerator and stores the legal moves in an array.
+    inline void UpdateLegalMoves();
 };

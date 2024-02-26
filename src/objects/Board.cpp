@@ -17,7 +17,7 @@ Board::Board(float posX, float posY, float width, float height, const Renderer &
 
     resultText = std::make_unique<Object>(r, TextureName::CHECKMATE, posX + squareWidth * 3.f, posY + height, squareWidth * 2, squareWidth);
     CopyBoardFromEngine();
-    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+    UpdateLegalMoves();
     promotionSelector = std::make_unique<PromotionSelector>(r, posX, posY, squareWidth, squareHeight);
 }
 
@@ -62,7 +62,7 @@ void Board::LoadFEN(const std::string &FEN)
 {
     chessEngine.LoadFEN(FEN);
     CopyBoardFromEngine();
-    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+    UpdateLegalMoves();
 }
 
 void Board::Translate(float x, float y)
@@ -143,7 +143,7 @@ void Board::ClickEvent(float mouseX, float mouseY)
         if (promoPiece == PieceType::EMPTY)
             return;
 
-        Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, promotionSelector->endRow, promotionSelector->endCol);
+        Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, promotionSelector->GetPromoRow(), promotionSelector->GetPromoCol());
 
         MakeMove(selectedMove);
 
@@ -167,12 +167,11 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
     if (pieceSelected)
     {
-        if (squares[rowPieceSelected][colPieceSelected]->GetPiece() == PieceType::PAWN)
+        if (GetPType(rowPieceSelected, colPieceSelected) == PieceType::PAWN)
         {
             if ((row == 7 || row == 0) && IsValidMove(rowPieceSelected, colPieceSelected, row, col))
             {
-                bool inTop = (row == 7 && !rotated) || (row == 0 && rotated);
-                promotionSelector->StartSelection(row, col, inTop);
+                promotionSelector->StartSelection(row, col, GetPColor(rowPieceSelected, colPieceSelected), rotated);
                 return;
             }
         }
@@ -221,7 +220,7 @@ void Board::KeyEvent(char key)
     }
 }
 
-// executes a move in the chessEngine, then updates the board
+// executes a move in the moveGenerator, then updates the legal moves and the board
 void Board::MakeMove(Move move)
 {
     if (move.iniRow == move.endRow && move.iniCol == move.endCol)
@@ -230,7 +229,7 @@ void Board::MakeMove(Move move)
     chessEngine.MakeMove(move);
     CopyBoardFromEngine();
     checkResult();
-    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+    UpdateLegalMoves();
 }
 
 // highlights the last move played
@@ -327,7 +326,7 @@ Move Board::FindMoveSelected(short iniRow, short iniCol, short finalRow, short f
 // check if there is a legal move from initial square to final square
 bool Board::IsValidMove(short iniRow, short iniCol, short finalRow, short finalCol)
 {
-    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
+    UpdateLegalMoves();
     for (int i = 0; i < numLegalMoves; i++)
     {
         if (legalMoves[i].endRow == finalRow && legalMoves[i].endCol == finalCol &&
@@ -350,6 +349,12 @@ inline void Board::GetSquareClicked(float mouseX, float mouseY, short &row, shor
         row = 7 - row;
         col = 7 - col;
     }
+}
+
+// calls the moveGenerator and stores the legal moves in an array.
+inline void Board::UpdateLegalMoves()
+{
+    chessEngine.GetLegalMoves(legalMoves, numLegalMoves);
 }
 
 // highlights all squares which a piece could move from row, col coords

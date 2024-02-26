@@ -20,7 +20,10 @@ enum class TextureName
     BBISHOP = 12,
     CHECKMATE = 13,
     STALEMATE = 14,
-    PROMOTION = 15
+    PROMO_WHITE_TOP = 15,
+    PROMO_WHITE_DOWN = 16,
+    PROMO_BLACK_TOP = 17,
+    PROMO_BLACK_DOWN = 18,
 };
 
 class TextureManager
@@ -37,8 +40,8 @@ public:
     inline const Texture &GetTexture(TextureName name) const { return *textureArray[IndexOf(name)]; }
 
 private:
-    unsigned int numTextures = 16;
-    std::unique_ptr<Texture> textureArray[16];
+    unsigned int numTextures = 19;
+    std::unique_ptr<Texture> textureArray[19];
     inline int IndexOf(TextureName name) const { return static_cast<int>(name); }
 
     void InitializeTextures()
@@ -58,6 +61,9 @@ private:
         textureArray[IndexOf(TextureName::BBISHOP)] = std::make_unique<Texture>("res/textures/bB.png");
         textureArray[IndexOf(TextureName::CHECKMATE)] = std::make_unique<Texture>("res/textures/checkmate.png");
         textureArray[IndexOf(TextureName::STALEMATE)] = std::make_unique<Texture>("res/textures/stalemate.png");
-        textureArray[IndexOf(TextureName::PROMOTION)] = std::make_unique<Texture>("res/textures/promotion.png");
+        textureArray[IndexOf(TextureName::PROMO_WHITE_TOP)] = std::make_unique<Texture>("res/textures/promotion_white_top.png");
+        textureArray[IndexOf(TextureName::PROMO_WHITE_DOWN)] = std::make_unique<Texture>("res/textures/promotion_white_down.png");
+        textureArray[IndexOf(TextureName::PROMO_BLACK_TOP)] = std::make_unique<Texture>("res/textures/promotion_black_top.png");
+        textureArray[IndexOf(TextureName::PROMO_BLACK_DOWN)] = std::make_unique<Texture>("res/textures/promotion_black_down.png");
     }
-};  
+};

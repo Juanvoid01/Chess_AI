@@ -5,28 +5,23 @@
 class PromotionSelector : public Object
 {
 public:
-    short endRow;
-    short endCol;
-
     PromotionSelector(const Renderer &r, float boardx, float boardY, float squareWidth, float squareHeight)
-        : Object(r, TextureName::PROMOTION, boardx, boardY, squareWidth, 4 * squareHeight),
-          squareHeight(squareHeight), squareWidth(squareWidth), boardX(boardX), boardY(boardY), inSelection(false)
-    {
-        colSelection = 0;
-    };
+        : Object(r, TextureName::PROMO_WHITE_TOP, boardx, boardY, squareWidth, 4 * squareHeight),
+          squareHeight(squareHeight), squareWidth(squareWidth), boardX(boardX), boardY(boardY), inSelection(false){
+
+                                                                                                };
 
     ~PromotionSelector(){};
 
     inline bool IsInSelection() const { return inSelection; }
 
-    void StartSelection(short endRow, short endCol, bool inTop)
+    void StartSelection(short promoRow, short promoCol, PieceColor pieceColor, bool rotated)
     {
-        this->inTop = inTop;
+        this->rotated = rotated;
+        this->pieceColor = pieceColor;
+        this->promoRow = promoRow;
+        this->promoCol = promoCol;
 
-        this->endRow = endRow;
-        this->endCol = endCol;
-
-        colSelection = endCol;
         inSelection = true;
         AdjustPosition();
     }
@@ -40,19 +35,47 @@ public:
 
         if (mouseY < GetY() + squareHeight)
         {
-            return PieceType::BISHOP;
+            if (InTop())
+            {
+                return PieceType::BISHOP;
+            }
+            else
+            {
+                return PieceType::QUEEN;
+            }
         }
         else if (mouseY < GetY() + 2 * squareHeight)
         {
-            return PieceType::ROOK;
+            if (InTop())
+            {
+                return PieceType::ROOK;
+            }
+            else
+            {
+                return PieceType::KNIGHT;
+            }
         }
         else if (mouseY < GetY() + 3 * squareHeight)
         {
-            return PieceType::KNIGHT;
+            if (InTop())
+            {
+                return PieceType::KNIGHT;
+            }
+            else
+            {
+                return PieceType::ROOK;
+            }
         }
         else
         {
-            return PieceType::QUEEN;
+            if (InTop())
+            {
+                return PieceType::QUEEN;
+            }
+            else
+            {
+                return PieceType::BISHOP;
+            }
         }
     }
 
@@ -88,24 +111,79 @@ public:
         AdjustPosition();
     }
 
+    inline short GetPromoRow() const { return promoRow; }
+    inline short GetPromoCol() const { return promoCol; }
+
 private:
     float squareHeight;
     float squareWidth;
     float boardX;
     float boardY;
     bool inSelection;
-    short colSelection;
-    bool inTop;
 
+    short promoRow;
+    short promoCol;
+    bool rotated;
+    PieceColor pieceColor;
+
+    inline bool InTop() const { return (promoRow == 7 && !rotated) || (promoRow == 0 && rotated); }
     inline void AdjustPosition()
     {
-        if (inTop)
+        if (rotated)
         {
-            Object::SetPosition(boardX + colSelection * squareWidth, boardY + 4 * squareHeight);
+            if (promoRow == 7)
+            {
+                if (pieceColor == PieceColor::WHITE)
+                {
+                    SetTexture(TextureName::PROMO_WHITE_DOWN);
+                }
+                else
+                {
+                    SetTexture(TextureName::PROMO_BLACK_DOWN);
+                }
+
+                Object::SetPosition(boardX + (7 - promoCol) * squareWidth, boardY);
+            }
+            else
+            {
+                if (pieceColor == PieceColor::WHITE)
+                {
+                    SetTexture(TextureName::PROMO_WHITE_TOP);
+                }
+                else
+                {
+                    SetTexture(TextureName::PROMO_BLACK_TOP);
+                }
+
+                Object::SetPosition(boardX + (7 - promoCol) * squareWidth, boardY + 4 * squareHeight);
+            }
         }
         else
         {
-            Object::SetPosition(boardX + colSelection * squareWidth, boardY);
+            if (promoRow == 7)
+            {
+                if (pieceColor == PieceColor::WHITE)
+                {
+                    SetTexture(TextureName::PROMO_WHITE_TOP);
+                }
+                else
+                {
+                    SetTexture(TextureName::PROMO_BLACK_TOP);
+                }
+                Object::SetPosition(boardX + promoCol * squareWidth, boardY + 4 * squareHeight);
+            }
+            else
+            {
+                if (pieceColor == PieceColor::WHITE)
+                {
+                    SetTexture(TextureName::PROMO_WHITE_DOWN);
+                }
+                else
+                {
+                    SetTexture(TextureName::PROMO_BLACK_DOWN);
+                }
+                Object::SetPosition(boardX + promoCol * squareWidth, boardY);
+            }
         }
     }
 };
