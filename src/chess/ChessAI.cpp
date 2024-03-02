@@ -16,7 +16,7 @@ Move ChessAI::GetBestMove(MoveGenerator &moveGen)
 
     int alpha = negativeInfinity;
     int beta = positiveInfinity;
-    int eval = Search(6, 0, alpha, beta);
+    int eval = Search(4, 0, alpha, beta);
 
     return bestMoveInIteration;
 }
@@ -26,11 +26,6 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
     if (ply > 0)
     {
-
-        // Skip this position if a mating sequence has already been found earlier in
-        // the search, which would be shorter than any mate we could find from here.
-        // This is done by observing that alpha can't possibly be worse (and likewise
-        // beta can't  possibly be better) than being mated in the current position.
         alpha = std::max(alpha, -immediateMateScore + ply);
         beta = std::min(beta, immediateMateScore - ply);
         if (alpha >= beta)
@@ -41,7 +36,7 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
     if (depth == 0)
     {
-        return evaluator.GetEvaluation(moveGenerator->GetPieceArray(), moveGenerator->GetTurn());
+        return SearchCaptures(alpha, beta);
     }
 
     MoveArray moves;
@@ -93,15 +88,17 @@ int ChessAI::SearchCaptures(int alpha, int beta)
     int evaluation = evaluator.GetEvaluation(moveGenerator->GetPieceArray(), moveGenerator->GetTurn());
 
     if (evaluation >= beta)
+    {
         return beta;
-
-    alpha = std::max(alpha, evaluation);
+    }
+    if (evaluation > alpha)
+    {
+        alpha = evaluation;
+    }
 
     MoveArray moves;
     int n_moves = 0;
     moveGenerator->GetLegalMoves(moves, n_moves);
-
-    OrderMoves(moves, n_moves);
 
     PosStateInfo posInfoState = moveGenerator->GetStateInfo();
 
@@ -112,15 +109,20 @@ int ChessAI::SearchCaptures(int alpha, int beta)
 
         moveGenerator->MakeMove(moves[i]);
 
-        int evaluation = -SearchCaptures(alpha, beta);
+        evaluation = -SearchCaptures(-beta, -alpha);
 
         moveGenerator->UnMakeMove(moves[i], posInfoState);
 
         if (evaluation >= beta)
+        {
             return beta;
-
-        alpha = std::max(alpha, evaluation);
+        }
+        if (evaluation > alpha)
+        {
+            alpha = evaluation;
+        }
     }
+
     return alpha;
 }
 
