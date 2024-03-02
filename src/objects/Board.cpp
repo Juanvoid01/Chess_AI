@@ -147,6 +147,9 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
         MakeMove(selectedMove);
 
+        UnSelectBoard();
+        SelectLastMove();
+        
         pieceSelected = false;
 
         return;
@@ -185,6 +188,7 @@ void Board::ClickEvent(float mouseX, float mouseY)
             MakeMove(selectedMove);
 
         UnSelectBoard();
+        SelectLastMove();
     }
     else
     {
@@ -224,6 +228,8 @@ void Board::KeyEvent(char key)
         Move moveAI = chessAI.GetBestMove(moveGenerator);
 
         MakeMove(moveAI);
+        UnSelectBoard();
+        SelectLastMove();
     }
 }
 
@@ -274,7 +280,6 @@ void Board::UnSelectBoard()
             UnSelectSquare(i, j);
         }
     }
-    SelectLastMove();
 }
 
 // returns the move from initial square to final square, it considers the promotion selection

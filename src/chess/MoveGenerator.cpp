@@ -381,7 +381,7 @@ void MoveGenerator::LoadFEN(const std::string &fen)
     }
 }
 
-inline bool MoveGenerator::isCapture(MoveType type) const
+bool MoveGenerator::isCapture(MoveType type) const
 {
     return type == MoveType::CAPTURE ||
            type == MoveType::KNIGHTPROMOCAPTURE ||

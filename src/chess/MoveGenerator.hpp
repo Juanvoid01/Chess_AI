@@ -33,7 +33,10 @@ public:
     inline PieceColor GetTurn() const { return stateInfo.turn; }
     void GetLegalMoves(MoveArray &moves, int &numMoves);
 
+    bool isCapture(MoveType type) const;
+
 private:
+
     MoveArray *legalMoves;
     int numLegalMoves;
 
@@ -71,8 +74,6 @@ private:
     inline bool isEnemyKing(short row, short col, PieceColor color) const { return pieces[row][col].type == PieceType::KING && pieces[row][col].color != color; }
     inline bool isEnemyPiece(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color != color; }
     inline bool isFriendlyPiece(short row, short col, PieceColor color) const { return !PosEmpty(row, col) && pieces[row][col].color == color; }
-
-    inline bool isCapture(MoveType type) const;
 
     void updateDangers();
     void UpdatePawnDangers(short row, short col, PieceColor color);

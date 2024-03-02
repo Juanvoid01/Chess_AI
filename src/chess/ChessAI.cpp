@@ -1,8 +1,4 @@
 #include "ChessAI.hpp"
-#include <algorithm>
-
-bool MoveComparison(const Move &move1, const Move &move2);
-int GetPieceValue(PieceType piece);
 
 ChessAI::ChessAI()
 {
@@ -16,36 +12,33 @@ Move ChessAI::GetBestMove(MoveGenerator &moveGen)
 {
     moveGenerator = &moveGen;
 
-    int bestEval = -1;
-    Move bestMove = Move(-1, -1, -1, -1, MoveType::INVALID);
+    turnToMove = moveGen.GetTurn();
 
-    MoveArray moves;
-    int n_moves = 0;
-    moveGenerator->GetLegalMoves(moves, n_moves);
+    int alpha = negativeInfinity;
+    int beta = positiveInfinity;
+    int eval = Search(6, 0, alpha, beta);
 
-    std::sort(moves.begin(), moves.begin() + n_moves, MoveComparison);
-
-    PosStateInfo posInfoState = moveGenerator->GetStateInfo();
-
-    for (int i = 0; i < n_moves; i++)
-    {
-        moveGenerator->MakeMove(moves[i]);
-
-        int evaluation = -Search(6, NEGATIVE_INFINITY, POSITIVE_INFINITY);
-        if (evaluation > bestEval || bestMove.type == MoveType::INVALID)
-        {
-            bestEval = evaluation;
-            bestMove = moves[i];
-        }
-
-        moveGenerator->UnMakeMove(moves[i], posInfoState);
-    }
-
-    return bestMove;
+    return bestMoveInIteration;
 }
 
-int ChessAI::Search(int depth, int alpha, int beta)
+int ChessAI::Search(int depth, int ply, int alpha, int beta)
 {
+
+    if (ply > 0)
+    {
+
+        // Skip this position if a mating sequence has already been found earlier in
+        // the search, which would be shorter than any mate we could find from here.
+        // This is done by observing that alpha can't possibly be worse (and likewise
+        // beta can't  possibly be better) than being mated in the current position.
+        alpha = std::max(alpha, -immediateMateScore + ply);
+        beta = std::min(beta, immediateMateScore - ply);
+        if (alpha >= beta)
+        {
+            return alpha;
+        }
+    }
+
     if (depth == 0)
     {
         return evaluator.GetEvaluation(moveGenerator->GetPieceArray(), moveGenerator->GetTurn());
@@ -55,18 +48,17 @@ int ChessAI::Search(int depth, int alpha, int beta)
     int n_moves = 0;
     moveGenerator->GetLegalMoves(moves, n_moves);
 
-    std::sort(moves.begin(), moves.begin() + n_moves, MoveComparison);
-
     if (moveGenerator->IsCheckMate())
     {
-        return NEGATIVE_INFINITY;
+        int mateScore = immediateMateScore - ply;
+        return -mateScore;
     }
     else if (moveGenerator->IsStaleMate())
     {
         return 0;
     }
 
-    int bestEvaluation = NEGATIVE_INFINITY;
+    OrderMoves(moves, n_moves);
 
     PosStateInfo posInfoState = moveGenerator->GetStateInfo();
 
@@ -74,47 +66,86 @@ int ChessAI::Search(int depth, int alpha, int beta)
     {
         moveGenerator->MakeMove(moves[i]);
 
-        int evaluation = -Search(depth - 1, -beta, -alpha);
-        bestEvaluation = std::max(evaluation, bestEvaluation);
+        int evaluation = -Search(depth - 1, ply + 1, -beta, -alpha);
 
         moveGenerator->UnMakeMove(moves[i], posInfoState);
 
         if (evaluation >= beta)
         {
-            return beta; // move too good, opponent will avoid this position
+            return beta;
         }
+
+        if (evaluation > alpha)
+        {
+            alpha = evaluation;
+            if (ply == 0)
+            {
+                bestMoveInIteration = moves[i];
+                bestEvalInIteration = evaluation;
+            }
+        }
+    }
+    return alpha;
+}
+
+int ChessAI::SearchCaptures(int alpha, int beta)
+{
+    int evaluation = evaluator.GetEvaluation(moveGenerator->GetPieceArray(), moveGenerator->GetTurn());
+
+    if (evaluation >= beta)
+        return beta;
+
+    alpha = std::max(alpha, evaluation);
+
+    MoveArray moves;
+    int n_moves = 0;
+    moveGenerator->GetLegalMoves(moves, n_moves);
+
+    OrderMoves(moves, n_moves);
+
+    PosStateInfo posInfoState = moveGenerator->GetStateInfo();
+
+    for (int i = 0; i < n_moves; i++)
+    {
+        if (!moveGenerator->isCapture(moves[i].type))
+            continue;
+
+        moveGenerator->MakeMove(moves[i]);
+
+        int evaluation = -SearchCaptures(alpha, beta);
+
+        moveGenerator->UnMakeMove(moves[i], posInfoState);
+
+        if (evaluation >= beta)
+            return beta;
+
         alpha = std::max(alpha, evaluation);
     }
     return alpha;
 }
 
-int GetPieceValue(PieceType piece)
+void ChessAI::OrderMoves(MoveArray &moves, int n_moves)
 {
-    switch (piece)
+
+    bool swapped;
+    for (int i = 0; i < n_moves - 1; ++i)
     {
-    case PieceType::PAWN:
-        return 1;
-        break;
-    case PieceType::KNIGHT:
-        return 3;
-        break;
-    case PieceType::BISHOP:
-        return 3;
-        break;
-    case PieceType::ROOK:
-        return 5;
-        break;
-    case PieceType::QUEEN:
-        return 9;
-        break;
-    default:
-        return 0;
-        break;
+        swapped = false;
+        for (int j = 0; j < n_moves - i - 1; ++j)
+        {
+            if (!MoveComparison(moves[j], moves[j + 1]))
+            {
+                std::swap(moves[j], moves[j + 1]);
+                swapped = true;
+            }
+        }
+        if (!swapped)
+            break;
     }
 }
 
 // returns true if move1 is most promising than move2
-bool MoveComparison(const Move &move1, const Move &move2)
+bool ChessAI::MoveComparison(const Move &move1, const Move &move2)
 {
     int value1, value2;
 
@@ -130,7 +161,7 @@ bool MoveComparison(const Move &move1, const Move &move2)
         value1 = 1;
         break;
     default:
-        value1 = 3;
+        value1 = 2;
         break;
     }
 
@@ -146,9 +177,14 @@ bool MoveComparison(const Move &move1, const Move &move2)
         value2 = 1;
         break;
     default:
-        value2 = 3;
+        value2 = 2;
         break;
     }
 
-     return value1 > value2;
+    const PieceArray &pieces = moveGenerator->GetPieceArray();
+
+    value1 += evaluator.GetPieceValue(pieces[move1.iniRow][move1.iniCol].type);
+    value2 += evaluator.GetPieceValue(pieces[move2.iniRow][move2.iniCol].type);
+
+    return value1 > value2;
 }
