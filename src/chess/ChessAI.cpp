@@ -12,11 +12,17 @@ Move ChessAI::GetBestMove(MoveGenerator &moveGen)
 {
     moveGenerator = &moveGen;
 
-    turnToMove = moveGen.GetTurn();
+    bestEvalInIteration = 0;
+    bestMoveInIteration = InvalidMove;
+
+    zobrist.InitializeHashWithPos(moveGenerator->GetPieceArray());
+    ttTable.Clear();
+
+    turnToMove = moveGenerator->GetTurn();
 
     int alpha = negativeInfinity;
     int beta = positiveInfinity;
-    int eval = Search(4, 0, alpha, beta);
+    int eval = Search(10, 0, alpha, beta);
 
     return bestMoveInIteration;
 }
@@ -32,6 +38,18 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
         {
             return alpha;
         }
+    }
+    uint64_t zobristOfThisPos = zobrist.GetHashValue();
+
+    int ttVal = ttTable.GetEvaluation(zobristOfThisPos, depth, ply, alpha, beta);
+    if (ttVal != ttTable.lookupFailed)
+    {
+        if (ply == 0)
+        {
+            bestMoveInIteration = ttTable.GetEntry(zobristOfThisPos).move;
+            bestEvalInIteration = ttTable.GetEntry(zobristOfThisPos).value;
+        }
+        return ttVal;
     }
 
     if (depth == 0)
@@ -55,23 +73,31 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
     OrderMoves(moves, n_moves);
 
+    int evaluationBound = ttTable.upperBound;
+    Move bestMoveInPosition = Move(-1, -1, -1, -1, MoveType::INVALID);
+
     PosStateInfo posInfoState = moveGenerator->GetStateInfo();
 
     for (int i = 0; i < n_moves; i++)
     {
+        zobrist.AddMove(moves[i], moveGenerator->GetPieceArray());
         moveGenerator->MakeMove(moves[i]);
 
         int evaluation = -Search(depth - 1, ply + 1, -beta, -alpha);
 
+        zobrist.PutHashValue(zobristOfThisPos);
         moveGenerator->UnMakeMove(moves[i], posInfoState);
 
         if (evaluation >= beta)
         {
+            ttTable.StoreEvaluation(zobristOfThisPos, depth, ply, beta, ttTable.lowerBound, moves[i]);
+
             return beta;
         }
 
         if (evaluation > alpha)
         {
+            evaluationBound = ttTable.exact;
             alpha = evaluation;
             if (ply == 0)
             {
@@ -80,6 +106,7 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
             }
         }
     }
+    ttTable.StoreEvaluation(zobrist.GetHashValue(), depth, ply, alpha, evaluationBound, bestMoveInPosition);
     return alpha;
 }
 

@@ -39,6 +39,8 @@ src/objects/Board.cpp
 src/chess/Move.cpp
 src/chess/PieceType.hpp
 src/objects/PromotionSelector.hpp
+src/chess/Zobrist.cpp
+src/chess/TranspositionTable.cpp
 src/chess/MoveGenerator.cpp
 src/chess/Evaluator.cpp
 src/chess/ChessAI.cpp

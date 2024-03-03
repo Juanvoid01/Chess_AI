@@ -116,3 +116,5 @@ struct PosStateInfo
 };
 
 typedef std::array<std::array<PieceInfo, 8>, 8> PieceArray;
+
+const Move InvalidMove = Move(-1, -1, -1, -1, MoveType::INVALID);

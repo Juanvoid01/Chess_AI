@@ -2,12 +2,8 @@
 
 #include "Evaluator.hpp"
 #include "MoveGenerator.hpp"
+#include "TranspositionTable.hpp"
 
-#include <limits>
-
-/*const int POSITIVE_INFINITY = std::numeric_limits<int>::max();
-const int NEGATIVE_INFINITY = std::numeric_limits<int>::min();
-*/
 class ChessAI
 {
 public:
@@ -24,6 +20,9 @@ private:
     int bestEvalInIteration;
     PieceColor turnToMove;
 
+    Zobrist zobrist;
+    TranspositionTable ttTable;
+
     const int immediateMateScore = 100000;
     const int positiveInfinity = 9999999;
     const int negativeInfinity = -9999999;
@@ -36,4 +35,5 @@ private:
     bool MoveComparison(const Move &move1, const Move &move2);
 
     int SearchCaptures(int alpha, int beta);
+
 };

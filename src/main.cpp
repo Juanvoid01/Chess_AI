@@ -4,7 +4,6 @@
 
 #include "viewer.hpp"
 #include "logic.hpp"
-#include "Perft.hpp"
 
 int main()
 {
@@ -16,14 +15,6 @@ int main()
     std::thread viewerWorker(&Viewer::run, *viewer);
 
     viewerWorker.join();
-
-    //PerftTestKiwipete();
-    //PerftTestEdwards2();
-    //PerftTestTalkchess();
-    //PerftTestPos4();
-    //PerftTestPos4Mirror();
-    //PerftTestMoveInfo(FEN_KIWIPETE);
-    //PerftTestStrangeMoves();
 
     return 0;
 }

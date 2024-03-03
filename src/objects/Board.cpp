@@ -149,7 +149,7 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
         UnSelectBoard();
         SelectLastMove();
-        
+
         pieceSelected = false;
 
         return;
@@ -236,6 +236,8 @@ void Board::KeyEvent(char key)
 // executes a move in the moveGenerator, then updates the legal moves and the board
 void Board::MakeMove(Move move)
 {
+    if (move.type == MoveType::INVALID)
+        return;
     if (move.iniRow == move.endRow && move.iniCol == move.endCol)
         return;
 
