@@ -7,6 +7,7 @@ TranspositionTable::TranspositionTable()
     int numEntries = tableSize / sizeof(TranspositionTable::Entry);
 
     entries.resize(numEntries);
+    Clear();
     count = numEntries;
 
 }

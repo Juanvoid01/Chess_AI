@@ -238,7 +238,7 @@ void Board::KeyEvent(char key)
 
         std::thread searchWorker(startSearchFunc);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         chessAI.AbortSearch();
 

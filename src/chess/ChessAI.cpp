@@ -22,7 +22,6 @@ void ChessAI::StartSearch(MoveGenerator &moveGen)
     bestEvalFound = bestEvalInIteration;
 
     zobrist.InitializeHashWithPos(moveGenerator->GetPieceArray());
-    ttTable.Clear();
 
     turnToMove = moveGenerator->GetTurn();
     const int MAX_DEPTH = 100;
@@ -40,7 +39,7 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
         std::cout << searchDepth << ' ' << std::flush;
 
         Search(searchDepth, 0, negativeInfinity, positiveInfinity);
-        
+
         if (abortSearch)
         {
             break;
@@ -127,6 +126,11 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
         zobrist.PutHashValue(zobristOfThisPos);
         moveGenerator->UnMakeMove(moves[i], posInfoState);
+
+        if (abortSearch)
+        {
+            return 0;
+        }
 
         if (evaluation >= beta)
         {

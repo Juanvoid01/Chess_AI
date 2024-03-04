@@ -20,8 +20,6 @@ add_executable(chess_AI
 src/main.cpp
 src/extern/stb_image/stb_image.cpp
 src/viewer.cpp 
-src/controller.cpp 
-src/logic.cpp
 src/utils/Object.cpp
 src/utils/Renderer.cpp
 src/utils/VertexBuffer.cpp
