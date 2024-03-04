@@ -15,25 +15,35 @@ int Evaluator::GetEvaluation(const PieceArray &pieces, PieceColor turn)
     int evaluation = 0;
     int perspective = turn == PieceColor::WHITE ? 1 : -1;
 
+    inEndgame = IsEndgameFase();
+
     int material = CountMaterial();
 
     evaluation += material;
     return evaluation * perspective;
 }
 
-//white pieces value - black pieces value
+// white pieces value - black pieces value
 int Evaluator::CountMaterial() const
 {
     int material = 0;
+
+    PieceType pieceType;
+    PieceColor pieceColor;
+
+    short rowWK, colWK, rowBK, colBK;
 
     for (int row = 0; row < 8; row++)
     {
         for (int col = 0; col < 8; col++)
         {
-            if ((*pieces)[row][col].type == PieceType::EMPTY)
+            pieceType = (*pieces)[row][col].type;
+            pieceColor = (*pieces)[row][col].color;
+
+            if (pieceType == PieceType::EMPTY)
                 continue;
 
-            if ((*pieces)[row][col].color == PieceColor::WHITE)
+            if (pieceColor == PieceColor::WHITE)
             {
                 material += GetPieceRelativeValue(row, col);
             }
@@ -41,8 +51,23 @@ int Evaluator::CountMaterial() const
             {
                 material -= GetPieceRelativeValue(row, col);
             }
+
+            if (pieceType == PieceType::KING)
+            {
+                if (pieceColor == PieceColor::WHITE)
+                {
+                    rowWK = row, colWK = col;
+                }
+                else
+                {
+                    rowBK = row, colBK = col;
+                }
+            }
         }
     }
+    if (inEndgame)
+        material +=(14 - GetKingSeparation(rowWK, colWK, rowBK, colBK));
+
     return material;
 }
 
@@ -74,7 +99,15 @@ int Evaluator::GetPieceRelativeValue(int row, int col) const
         value += queenRelativeValues[rowArray][colArray];
         break;
     case PieceType::KING:
-        value += kingRelativeValues[rowArray][colArray];
+        if (inEndgame)
+        {
+            value += kingEndgameRelativeValues[rowArray][colArray];
+        }
+        else
+        {
+            value += kingRelativeValues[rowArray][colArray];
+        }
+
         break;
     default:
         value += 0;
@@ -106,4 +139,39 @@ int Evaluator::GetPieceValue(PieceType piece) const
         return 0;
         break;
     }
+}
+
+bool Evaluator::IsEndgameFase()
+{
+    int numPieces = 0;
+    int numQueens = 0;
+    PieceType piece;
+
+    for (int row = 0; row < 8; row++)
+    {
+        for (int col = 0; col < 8; col++)
+        {
+            piece = (*pieces)[row][col].type;
+            if (piece != PieceType::EMPTY)
+            {
+                if (piece != PieceType::PAWN)
+                {
+                    numPieces++;
+                }
+
+                if (piece == PieceType::QUEEN)
+                {
+                    numQueens++;
+                }
+            }
+        }
+    }
+
+    return numPieces <= 6 || numQueens <= 1 && numPieces <= 8;
+}
+
+int Evaluator::GetKingSeparation(short rowWK, short colWK, short rowBK, short colBK) const
+{
+    int separation = abs(rowWK - rowBK) + abs(colWK - colBK);
+    return separation;
 }

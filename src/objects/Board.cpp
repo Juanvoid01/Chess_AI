@@ -1,5 +1,7 @@
 #include "Board.hpp"
 
+#include <thread>
+
 Board::Board(float posX, float posY, float width, float height, const Renderer &r)
     : Object(r, TextureName::BOARD, posX, posY, width, height)
 {
@@ -225,7 +227,24 @@ void Board::KeyEvent(char key)
     }
     else if (key == 'p' || key == 'P')
     {
-        Move moveAI = chessAI.GetBestMove(moveGenerator);
+
+        MoveGenerator *movegen = &moveGenerator;
+        ChessAI *ai = &chessAI;
+
+        auto startSearchFunc = [ai, movegen]()
+        {
+            ai->StartSearch(*movegen);
+        };
+
+        std::thread searchWorker(startSearchFunc);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+
+        chessAI.AbortSearch();
+
+        searchWorker.join();
+
+        Move moveAI = chessAI.GetBestMove();
 
         MakeMove(moveAI);
         UnSelectBoard();

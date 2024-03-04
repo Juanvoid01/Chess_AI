@@ -48,7 +48,7 @@ void Viewer::run()
 
         std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight);
         std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer);
-        board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
+        board->LoadFEN(FEN_ROOK_MATE);
         EventManager eventManager(window, renderer, board);
 
         board->SetCenter(windowWidth / 2, windowHeight / 2);

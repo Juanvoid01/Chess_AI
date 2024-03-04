@@ -11,6 +11,7 @@
 #define FEN_LASKER_ENDGAME "8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1"
 #define FEN_QUEEN_ROOK_MATE "8/8/8/3k4/8/8/8/5RQK w - - 0 1"
 #define FEN_QUEEN_VS_PAWN_ENDGAME "8/8/2KQ4/8/8/8/3p4/3k4 w - - 0 1"
+#define FEN_ROOK_MATE "6kr/8/8/3K4/8/8/8/8 b - - 0 1"
 
 void PerftTest(const std::string &FEN, unsigned int depth);
 

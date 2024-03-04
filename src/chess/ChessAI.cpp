@@ -1,34 +1,74 @@
 #include "ChessAI.hpp"
+#include <iostream>
 
 ChessAI::ChessAI()
 {
+    searching = false;
 }
 
 ChessAI::~ChessAI()
 {
 }
 
-Move ChessAI::GetBestMove(MoveGenerator &moveGen)
+void ChessAI::StartSearch(MoveGenerator &moveGen)
 {
+    searching = true;
+
     moveGenerator = &moveGen;
 
     bestEvalInIteration = 0;
     bestMoveInIteration = InvalidMove;
+    bestMoveFound = bestMoveInIteration;
+    bestEvalFound = bestEvalInIteration;
 
     zobrist.InitializeHashWithPos(moveGenerator->GetPieceArray());
     ttTable.Clear();
 
     turnToMove = moveGenerator->GetTurn();
+    const int MAX_DEPTH = 100;
+    RunIterativeDeepening(MAX_DEPTH);
+}
 
-    int alpha = negativeInfinity;
-    int beta = positiveInfinity;
-    int eval = Search(10, 0, alpha, beta);
+void ChessAI::RunIterativeDeepening(int maxDepth)
+{
+    abortSearch = false;
 
-    return bestMoveInIteration;
+    std::cout << "Search started :\nDepths : ";
+
+    for (int searchDepth = 1; searchDepth <= maxDepth; searchDepth++)
+    {
+        std::cout << searchDepth << ' ' << std::flush;
+
+        Search(searchDepth, 0, negativeInfinity, positiveInfinity);
+        
+        if (abortSearch)
+        {
+            break;
+        }
+        else
+        {
+            currentDepthInSearch = searchDepth;
+
+            bestMoveFound = bestMoveInIteration;
+            bestEvalFound = bestEvalInIteration;
+
+            if (IsMateScore(bestEvalFound))
+            {
+                break;
+            }
+        }
+    }
+    std::cout << "\nSearch Finished\n";
+    searching = false;
 }
 
 int ChessAI::Search(int depth, int ply, int alpha, int beta)
 {
+
+    if (abortSearch)
+    {
+        return 0;
+    }
 
     if (ply > 0)
     {

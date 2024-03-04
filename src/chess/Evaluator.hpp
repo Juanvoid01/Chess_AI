@@ -20,6 +20,12 @@ private:
 
     int GetPieceRelativeValue(int row, int col) const;
 
+    bool IsEndgameFase();
+
+    int GetKingSeparation(short rowWK, short colWK, short rowBK, short colBK) const;
+
+    bool inEndgame;
+
     short pawnRelativeValues[8][8] = {
         {0, 0, 0, 0, 0, 0, 0, 0},
         {5, 10, 10, -20, -20, 10, 10, 5},
@@ -79,4 +85,14 @@ private:
         {-30, -40, -40, -50, -50, -40, -40, -30},
         {-30, -40, -40, -50, -50, -40, -40, -30},
         {-30, -40, -40, -50, -50, -40, -40, -30}};
+
+    short kingEndgameRelativeValues[8][8] = {
+        {-50, -45, -40, -35, -35, -40, -45, -50},
+        {-45, -40, 10, 10, 10, 10, -40, -45},
+        {-40, 10, 20, 30, 30, 20, 10, -40},
+        {-35, 10, 30, 40, 40, 30, 10, -35},
+        {-35, 10, 30, 40, 40, 30, 10, -35},
+        {-40, 10, 20, 30, 30, 20, 10, -40},
+        {-45, -40, 10, 10, 10, 10, -40, -45},
+        {-50, -45, -40, -35, -35, -40, -45, -50}};
 };
