@@ -11,6 +11,7 @@ include_directories(${GLFW_INCLUDE_DIRS})
 
 include_directories(src/extern/stb_image)
 include_directories(src/extern/glm)
+include_directories(src/extern/gltext)
 include_directories(src/utils)
 include_directories(src/objects)
 include_directories(src/chess)
@@ -31,6 +32,7 @@ src/utils/Texture.cpp
 src/utils/TextureManager.hpp
 src/utils/ShaderManager.hpp
 src/utils/EventManager.cpp
+src/utils/TextObject.cpp
 src/objects/Piece.cpp
 src/objects/Square.cpp
 src/objects/Board.cpp
@@ -45,6 +47,6 @@ src/chess/ChessAI.cpp
 src/chess/Perft.cpp
 )
 
-target_compile_options(chess_AI PRIVATE -g -O3)
+target_compile_options(chess_AI PRIVATE -g)
 
 target_link_libraries(chess_AI ${OPENGL_LIBRARIES} GLEW::GLEW glfw)

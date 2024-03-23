@@ -4,6 +4,9 @@
 #include "viewer.hpp"
 #include "Board.hpp"
 #include "Perft.hpp"
+#include "TextObject.hpp"
+
+void DrawText(const TextObject &text);
 
 void Viewer::run()
 {
@@ -38,6 +41,13 @@ void Viewer::run()
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
+    if (!gltInit())
+    {
+        std::cout << "Failed to initialize glText" << std::endl;
+        glfwTerminate();
+        result = -1;
+    }
+
     {
 
         int windowWidth, windowHeight;
@@ -48,11 +58,12 @@ void Viewer::run()
 
         std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight);
         std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer);
-        //board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
+        // board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
         EventManager eventManager(window, renderer, board);
 
         board->SetCenter(windowWidth / 2, windowHeight / 2);
 
+        TextObject text("Hola mundo", 50.f, 50.f, 50.f, 50.f, *renderer);
         // Loop until the user closes the window
 
         while (!glfwWindowShouldClose(window))
@@ -60,6 +71,8 @@ void Viewer::run()
             renderer->Clear();
 
             board->Render();
+            DrawText(text);
+            text.Render();
 
             // Swap front and back buffers
             glfwSwapBuffers(window);
@@ -69,6 +82,7 @@ void Viewer::run()
         }
     }
     // Cleanup
+    gltTerminate();
     glfwTerminate();
 }
 
@@ -79,4 +93,27 @@ void Viewer::render()
     // Your drawing functions go here
 
     glfwSwapBuffers(glfwGetCurrentContext());
+}
+
+void DrawText(const TextObject &text)
+{
+    // GLTtext *t = gltCreateText();
+    // gltSetText(t, text.GetText().c_str());
+
+    gltColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+    // Begin text drawing (this for instance calls glUseProgram)
+    gltBeginDraw();
+
+    gltColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+    auto mvp = glm::scale(text.GetMVP(), glm::vec3(1.0f, -1.0f, 1.0f));
+
+    gltDrawText(text.GetgltString(), (GLfloat *)&mvp);
+
+    // Finish drawing text
+    gltEndDraw();
+
+    // Deleting text
+    // gltDeleteText(t);
 }

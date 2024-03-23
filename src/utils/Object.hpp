@@ -40,6 +40,10 @@ public:
         return px >= x && px <= x + width && py >= y && py <= y + height;
     }
 
+protected:
+    const Renderer &renderer;
+    glm::mat4 mvp;
+
 private:
     float originalWidth;
     float originalHeight;
@@ -66,11 +70,9 @@ private:
     glm::vec4 color;
 
     glm::mat4 model;
-    glm::mat4 mvp;
 
     TextureName textureName;
     ShaderName shaderName;
-    const Renderer &renderer;
 
     void RecalculateModel();
 };
