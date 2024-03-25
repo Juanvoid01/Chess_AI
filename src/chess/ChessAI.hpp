@@ -22,6 +22,9 @@ public:
 
     inline bool IsSearching() const { return searching; }
 
+    std::atomic<int> depthReached = 0;
+    std::atomic<int> nodesVisited = 0;
+
 private:
     Evaluator evaluator;
     MoveGenerator *moveGenerator;

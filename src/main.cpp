@@ -4,7 +4,7 @@
 int main()
 {
     Viewer viewer;
-    viewer.run();
+    viewer.Run();
 
     return 0;
 }

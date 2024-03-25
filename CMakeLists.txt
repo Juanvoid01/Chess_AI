@@ -36,6 +36,7 @@ src/utils/TextObject.cpp
 src/objects/Piece.cpp
 src/objects/Square.cpp
 src/objects/Board.cpp
+src/objects/InformationText.cpp
 src/chess/Move.cpp
 src/chess/PieceType.hpp
 src/objects/PromotionSelector.hpp
@@ -47,6 +48,6 @@ src/chess/ChessAI.cpp
 src/chess/Perft.cpp
 )
 
-target_compile_options(chess_AI PRIVATE -g)
+target_compile_options(chess_AI PRIVATE -O3)
 
 target_link_libraries(chess_AI ${OPENGL_LIBRARIES} GLEW::GLEW glfw)

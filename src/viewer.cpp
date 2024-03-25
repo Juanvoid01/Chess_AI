@@ -5,10 +5,13 @@
 #include "Board.hpp"
 #include "Perft.hpp"
 #include "TextObject.hpp"
+#include "InformationText.hpp"
 
 void DrawText(const TextObject &text);
 
-void Viewer::run()
+void Update();
+
+void Viewer::Run()
 {
     int result = 0;
     GLFWwindow *window;
@@ -56,14 +59,16 @@ void Viewer::run()
         GLCall(glEnable(GL_BLEND));
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
+        ChessAI chessAI;
         std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight);
-        std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer);
+        InformationText infoText(800.f, 150.f, *renderer, &DrawText);
+        infoText.SetScale(1.3f, 1.3f);
+        std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer, chessAI, infoText);
         // board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
         EventManager eventManager(window, renderer, board);
 
         board->SetCenter(windowWidth / 2, windowHeight / 2);
 
-        TextObject text("Hola mundo", 50.f, 50.f, 50.f, 50.f, *renderer);
         // Loop until the user closes the window
 
         while (!glfwWindowShouldClose(window))
@@ -71,9 +76,8 @@ void Viewer::run()
             renderer->Clear();
 
             board->Render();
-            DrawText(text);
-            text.Render();
 
+            infoText.Render();
             // Swap front and back buffers
             glfwSwapBuffers(window);
 
@@ -86,7 +90,11 @@ void Viewer::run()
     glfwTerminate();
 }
 
-void Viewer::render()
+void Viewer::Update()
+{
+}
+
+void Viewer::Render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -107,9 +115,9 @@ void DrawText(const TextObject &text)
 
     gltColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-    auto mvp = glm::scale(text.GetMVP(), glm::vec3(1.0f, -1.0f, 1.0f));
+    // auto mvp = glm::scale(text.GetMVP(), glm::vec3(1.0f, -1.0f, 1.0f));
 
-    gltDrawText(text.GetgltString(), (GLfloat *)&mvp);
+    gltDrawText(text.GetgltString(), (GLfloat *)&text.GetMVP());
 
     // Finish drawing text
     gltEndDraw();

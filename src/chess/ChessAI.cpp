@@ -12,6 +12,8 @@ ChessAI::~ChessAI()
 
 void ChessAI::StartSearch(MoveGenerator &moveGen)
 {
+    depthReached = 0;
+    nodesVisited = 0;
     searching = true;
 
     moveGenerator = &moveGen;
@@ -36,6 +38,8 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
 
     for (int searchDepth = 1; searchDepth <= maxDepth; searchDepth++)
     {
+        depthReached = searchDepth; //debug
+
         std::cout << searchDepth << ' ' << std::flush;
 
         Search(searchDepth, 0, negativeInfinity, positiveInfinity);
@@ -63,7 +67,8 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
 
 int ChessAI::Search(int depth, int ply, int alpha, int beta)
 {
-
+    nodesVisited++; //debug
+    
     if (abortSearch)
     {
         return 0;

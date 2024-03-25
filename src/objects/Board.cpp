@@ -2,8 +2,8 @@
 
 #include <thread>
 
-Board::Board(float posX, float posY, float width, float height, const Renderer &r)
-    : Object(r, TextureName::BOARD, posX, posY, width, height)
+Board::Board(float posX, float posY, float width, float height, const Renderer &r, ChessAI &chessAI, InformationText &infoText)
+    : Object(r, TextureName::BOARD, posX, posY, width, height), chessAI(chessAI), infoText(infoText)
 {
     squareWidth = width / 8.f;
     squareHeight = height / 8.f;
@@ -243,6 +243,10 @@ void Board::KeyEvent(char key)
         chessAI.AbortSearch();
 
         searchWorker.join();
+
+        infoText.SetState(chessAI.IsSearching() ? "Search started" : "Search finished");
+        infoText.SetDepth("Depth : " + std::to_string(chessAI.depthReached));
+        infoText.SetNodes("Nodes : " + std::to_string(chessAI.nodesVisited));
 
         Move moveAI = chessAI.GetBestMove();
 

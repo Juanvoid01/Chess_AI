@@ -3,12 +3,14 @@
 #include "Square.hpp"
 #include "ChessAI.hpp"
 #include "PromotionSelector.hpp"
+#include "InformationText.hpp"
+
 #include <vector>
 
 class Board : public Object
 {
 public:
-    Board(float posX, float posY, float width, float height, const Renderer &r);
+    Board(float posX, float posY, float width, float height, const Renderer &r, ChessAI& chessAI, InformationText& infoText);
     ~Board();
 
     // shows board on screen
@@ -32,6 +34,8 @@ public:
     void KeyEvent(char key);
 
 private:
+
+    InformationText& infoText;
     std::unique_ptr<Object> resultText;
     bool renderResult = false;
     std::array<std::array<std::unique_ptr<Square>, 8>, 8> squares;
@@ -48,7 +52,7 @@ private:
 
     MoveGenerator moveGenerator;
 
-    ChessAI chessAI;
+    ChessAI& chessAI;
 
     std::unique_ptr<PromotionSelector> promotionSelector;
 

@@ -5,10 +5,16 @@
 #define GLT_IMPLEMENTATION
 #include "gltext.h"
 
+
 class TextObject : public Object
 {
 public:
-    TextObject(const std::string &&text, float posX, float posY, float width, float height, const Renderer &r);
+
+    typedef void (*DrawFunction)(const TextObject&);
+
+    //using DrawFunction = void (*)(const TextObject&);
+
+    TextObject(const std::string &&text, float posX, float posY, const Renderer &r, DrawFunction drawfunction);
     ~TextObject() { gltDeleteText(gltText); }
 
     inline void SetText(const std::string &&text)
@@ -22,8 +28,11 @@ public:
     inline GLTtext *GetgltString() const { return gltText; }
     // shows text on screen
     void Render();
-
+    void SetScale(float x, float y);
 private:
     std::string textString;
     GLTtext *gltText;
+
+    //Need the function pointer to the draw Text Method
+    DrawFunction drawFunction;
 };

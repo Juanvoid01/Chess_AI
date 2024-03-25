@@ -4,10 +4,10 @@ class Viewer
 {
 public:
     Viewer(){};
-    void run();
+    void Run();
 
 private:
-
-    void render();
-    void showBoard();
+    void Render();
+    void Update();
+    void ShowBoard();
 };
