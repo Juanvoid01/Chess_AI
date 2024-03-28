@@ -4,10 +4,10 @@
 #include "viewer.hpp"
 #include "Board.hpp"
 #include "Perft.hpp"
-#include "TextObject.hpp"
+//#include "TextObject.hpp"
 #include "InformationText.hpp"
 
-void DrawText(const TextObject &text);
+void DrawText(GLTtext *gltText, const glm::mat4 &mvp);
 
 void Update();
 
@@ -60,8 +60,9 @@ void Viewer::Run()
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
         ChessAI chessAI;
-        std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight);
-        InformationText infoText(800.f, 150.f, *renderer, &DrawText);
+        
+        std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight,&DrawText);
+        InformationText infoText(800.f, 150.f, *renderer);
         infoText.SetScale(1.3f, 1.3f);
         std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer, chessAI, infoText);
         // board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
@@ -103,7 +104,7 @@ void Viewer::Render()
     glfwSwapBuffers(glfwGetCurrentContext());
 }
 
-void DrawText(const TextObject &text)
+void DrawText(GLTtext *gltText, const glm::mat4 &mvp)
 {
     // GLTtext *t = gltCreateText();
     // gltSetText(t, text.GetText().c_str());
@@ -117,7 +118,7 @@ void DrawText(const TextObject &text)
 
     // auto mvp = glm::scale(text.GetMVP(), glm::vec3(1.0f, -1.0f, 1.0f));
 
-    gltDrawText(text.GetgltString(), (GLfloat *)&text.GetMVP());
+    gltDrawText(gltText, (GLfloat *)&mvp);
 
     // Finish drawing text
     gltEndDraw();

@@ -45,8 +45,8 @@ bool GLCheckError()
     return true;
 }
 
-Renderer::Renderer(int windowWidth, int windowHeight)
-    : windowWidth(windowWidth), windowHeight(windowHeight)
+Renderer::Renderer(int windowWidth, int windowHeight, DrawFunction drawMethod)
+    : windowWidth(windowWidth), windowHeight(windowHeight),drawFunction(drawMethod)
 {
 }
 
@@ -82,6 +82,12 @@ void Renderer::Draw(const VertexArray &va, const IndexBuffer &ib, const glm::mat
     ib.Bind();
 
     glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr);
+}
+
+// shows text on screen
+void Renderer::DrawText(GLTtext *gltText, const glm::mat4 &mvp) const
+{
+    (*drawFunction)(gltText, mvp);
 }
 
 void Renderer::Clear() const

@@ -48,6 +48,6 @@ src/chess/ChessAI.cpp
 src/chess/Perft.cpp
 )
 
-target_compile_options(chess_AI PRIVATE -O3)
+target_compile_options(chess_AI PRIVATE -g)
 
 target_link_libraries(chess_AI ${OPENGL_LIBRARIES} GLEW::GLEW glfw)

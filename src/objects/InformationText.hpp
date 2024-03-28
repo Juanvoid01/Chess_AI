@@ -5,7 +5,7 @@
 class InformationText : public Object
 {
 public:
-    InformationText(float posX, float posY, const Renderer &r, TextObject::DrawFunction drawfunction);
+    InformationText(float posX, float posY, const Renderer &r);
     ~InformationText() {}
 
     void Render();

@@ -2,19 +2,12 @@
 
 #include "Object.hpp"
 
-#define GLT_IMPLEMENTATION
-#include "gltext.h"
-
 
 class TextObject : public Object
 {
 public:
 
-    typedef void (*DrawFunction)(const TextObject&);
-
-    //using DrawFunction = void (*)(const TextObject&);
-
-    TextObject(const std::string &&text, float posX, float posY, const Renderer &r, DrawFunction drawfunction);
+    TextObject(const std::string &&text, float posX, float posY, const Renderer &r);
     ~TextObject() { gltDeleteText(gltText); }
 
     inline void SetText(const std::string &&text)
@@ -33,6 +26,4 @@ private:
     std::string textString;
     GLTtext *gltText;
 
-    //Need the function pointer to the draw Text Method
-    DrawFunction drawFunction;
 };

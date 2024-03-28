@@ -1,10 +1,10 @@
 #include "InformationText.hpp"
 
-InformationText::InformationText(float posX, float posY, const Renderer &r, TextObject::DrawFunction drawfunction)
+InformationText::InformationText(float posX, float posY, const Renderer &r)
     : Object(r, TextureName::BOARD, posX, posY, 1.f, 1.f),
-      stateMessage("Search not started", posX, posY, r, drawfunction),
-      depthSearched("Depth : 0", posX, posY - textHeight, r, drawfunction),
-      nodesVisited("Nodes : 0", posX, posY - 2 * textHeight, r, drawfunction)
+      stateMessage("Search not started", posX, posY, r),
+      depthSearched("Depth : 0", posX, posY - textHeight, r),
+      nodesVisited("Nodes : 0", posX, posY - 2 * textHeight, r)
 {
 }
 

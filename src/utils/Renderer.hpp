@@ -10,6 +10,9 @@
 #include "glm.hpp"
 #include "gtc/matrix_transform.hpp"
 
+#define GLT_IMPLEMENTATION
+#include "gltext.h"
+
 #define ASSERT(x) \
     if (!(x))     \
     assert(false)
@@ -22,14 +25,20 @@
 void GLClearError();
 bool GLCheckError();
 
+
 class Renderer
 {
 public:
-    Renderer(int windowWidth, int windowHeight);
+    typedef void (*DrawFunction)(GLTtext *, const glm::mat4 &);
+
+    Renderer(int windowWidth, int windowHeight, DrawFunction drawMethod);
     ~Renderer();
     void Draw(const VertexArray &va, const IndexBuffer &ib, const glm::mat4 &mvp,
               ShaderName shader, TextureName texture = TextureName::EMPTY, const glm::vec4 &color = glm::vec4(1.f)) const;
-    
+
+    // shows text on screen
+    void DrawText(GLTtext *gltText, const glm::mat4 &mvp) const;
+
     void Clear() const;
 
     inline const glm::mat4 &GetProjection() const { return proj; }
@@ -40,6 +49,8 @@ public:
     void SetWindowWidth(int width);
     void SetWindowHeight(int height);
 
+    // Need the function pointer to the draw Text Method
+    DrawFunction drawFunction;
 private:
     int windowWidth;
     int windowHeight;

@@ -1,7 +1,7 @@
 #include "TextObject.hpp"
 
-TextObject::TextObject(const std::string &&text, float posX, float posY, const Renderer &r, DrawFunction drawfunction)
-    : Object(r, glm::vec4(1.f), posX, posY, 1.f, 1.f), drawFunction(drawfunction)
+TextObject::TextObject(const std::string &&text, float posX, float posY, const Renderer &r)
+    : Object(r, glm::vec4(1.f), posX, posY, 1.f, 1.f)
 {
     textString = text;
     gltText = gltCreateText();
@@ -12,7 +12,7 @@ TextObject::TextObject(const std::string &&text, float posX, float posY, const R
 // shows text on screen
 void TextObject::Render()
 {
-    (*drawFunction)(*this);
+    renderer.DrawText(GetgltString(), GetMVP());
 }
 
 void TextObject::SetScale(float x, float y)
