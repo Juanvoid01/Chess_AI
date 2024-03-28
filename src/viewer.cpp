@@ -57,7 +57,7 @@ void Viewer::Run()
 
         controller = std::make_unique<Controller>(*renderer);
 
-        eventManager = std::make_unique<EventManager>(window, renderer.get());
+        eventManager = std::make_unique<EventManager>(window, renderer.get(), controller.get());
 
         // Loop until the user closes the window
 

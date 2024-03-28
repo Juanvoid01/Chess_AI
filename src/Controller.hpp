@@ -5,6 +5,7 @@
 #include "Perft.hpp"
 #include "InformationText.hpp"
 
+#include "Actions.hpp"
 
 class Controller
 {
@@ -15,10 +16,19 @@ public:
     void Update();
     void Render();
 
+    void AddAction(Action *action);
+
+    inline void RotateBoard() { board->Rotate(); }
+
+    void MakeMove(const Move &move);
+    void MakeIAmove();
+
 private:
     const Renderer &renderer;
 
     ChessAI chessAI;
-    InformationText informationText;
-    Board board;
+    std::unique_ptr<InformationText> informationText;
+    std::unique_ptr<Board> board;
+    std::unique_ptr<Actions> actions;
+    std::unique_ptr<ActionController> actionController;
 };

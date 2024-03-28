@@ -1,16 +1,17 @@
 #pragma once
 
-#include <memory>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "Renderer.hpp"
+
+#include "Controller.hpp"
 
 static Renderer *renderer;
+static Controller* controller;
 
 class EventManager
 {
 public:
-    EventManager(GLFWwindow *windowd, Renderer *r);
+    EventManager(GLFWwindow *windowd, Renderer *r, Controller* ctrl);
     ~EventManager();
 
 private:

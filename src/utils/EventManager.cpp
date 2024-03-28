@@ -1,8 +1,10 @@
 #include "EventManager.hpp"
 
-EventManager::EventManager(GLFWwindow *window, Renderer *r)
+EventManager::EventManager(GLFWwindow *window, Renderer *r, Controller* ctrl)
 {
     renderer = r;
+    controller = ctrl;
+    
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glfwSetMouseButtonCallback(window, Mouse_click_callback);
@@ -43,11 +45,11 @@ void EventManager::Key_pressed_callback(GLFWwindow *window, int key, int scancod
     }
     else if (key == GLFW_KEY_R)
     {
-        // board->KeyEvent('r');
+        controller->AddAction(new RotateBoardAction());
     }
     else if (key == GLFW_KEY_P)
     {
-        // board->KeyEvent('p');
+        controller->AddAction(new AIPieceAction());
     }
 }
 

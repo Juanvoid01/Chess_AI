@@ -47,6 +47,11 @@ void Board::Render()
         promotionSelector->Render();
 }
 
+// update board state
+void Board::Update()
+{
+}
+
 // remove all pieces from the board
 void Board::Clear()
 {
@@ -208,6 +213,17 @@ void Board::ClickEvent(float mouseX, float mouseY)
     }
 }
 
+void Board::Rotate()
+
+{
+    if (promotionSelector->IsInSelection())
+        return;
+    rotated = !rotated;
+    CopyBoardFromEngine();
+    UnSelectBoard();
+    SelectLastMove();
+}
+
 // handle keyboard inputs on the board, rotation 'r'.
 void Board::KeyEvent(char key)
 {
@@ -218,12 +234,7 @@ void Board::KeyEvent(char key)
     }
     else if (key == 'r' || key == 'R')
     {
-        if (promotionSelector->IsInSelection())
-            return;
-        rotated = !rotated;
-        CopyBoardFromEngine();
-        UnSelectBoard();
-        SelectLastMove();
+        Rotate();
     }
     else if (key == 'p' || key == 'P')
     {

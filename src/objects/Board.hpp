@@ -16,6 +16,9 @@ public:
     // shows board on screen
     void Render();
 
+    // update board state
+    void Update();
+
     // remove all pieces from the board
     void Clear();
 
@@ -32,6 +35,8 @@ public:
 
     // handle keyboard inputs on the board, rotation 'r'.
     void KeyEvent(char key);
+
+    void Rotate();
 
 private:
 

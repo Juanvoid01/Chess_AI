@@ -14,14 +14,16 @@ include_directories(src/extern/glm)
 include_directories(src/extern/gltext)
 include_directories(src/utils)
 include_directories(src/objects)
+include_directories(src/actions)
 include_directories(src/chess)
+include_directories(src)
 include_directories(res)
 
 add_executable(chess_AI 
 src/main.cpp
 src/extern/stb_image/stb_image.cpp
-src/viewer.cpp 
 src/Controller.cpp 
+src/viewer.cpp 
 src/utils/Object.cpp
 src/utils/Renderer.cpp
 src/utils/VertexBuffer.cpp
@@ -47,6 +49,7 @@ src/chess/MoveGenerator.cpp
 src/chess/Evaluator.cpp
 src/chess/ChessAI.cpp
 src/chess/Perft.cpp
+src/actions/ActionController.cpp
 )
 
 target_compile_options(chess_AI PRIVATE -g)
