@@ -1,13 +1,8 @@
 #include "EventManager.hpp"
 
-std::shared_ptr<Board> EventManager::board = nullptr;
-std::shared_ptr<Renderer> EventManager::renderer = nullptr;
-
-EventManager::EventManager(GLFWwindow *window, std::shared_ptr<Renderer> renderer, std::shared_ptr<Board> board)
+EventManager::EventManager(GLFWwindow *window, Renderer *r)
 {
-    EventManager::renderer = renderer;
-    EventManager::board = board;
-
+    renderer = r;
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glfwSetMouseButtonCallback(window, Mouse_click_callback);
@@ -23,11 +18,11 @@ void EventManager::Mouse_click_callback(GLFWwindow *window, int button, int acti
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        double xpos, ypos;
+        /*double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
         ypos = renderer->GetWindowHeight() - ypos;
 
-        board->ClickEvent(xpos, ypos);
+        board->ClickEvent(xpos, ypos);*/
     }
 }
 
@@ -44,44 +39,15 @@ void EventManager::Key_pressed_callback(GLFWwindow *window, int key, int scancod
 
     if (key == GLFW_KEY_X)
     {
-        board->KeyEvent('x');
+        // board->KeyEvent('x');
     }
     else if (key == GLFW_KEY_R)
     {
-        board->KeyEvent('r');
+        // board->KeyEvent('r');
     }
     else if (key == GLFW_KEY_P)
     {
-        board->KeyEvent('p');
-    }
-
-    float translationX = 0.0f;
-    float translationY = 0.0f;
-    bool translation = false;
-
-    if (key == GLFW_KEY_A)
-    {
-        translationX = -10.f;
-        translation = true;
-    }
-    if (key == GLFW_KEY_D)
-    {
-        translationX = 10.f;
-        translation = true;
-    }
-    if (key == GLFW_KEY_W)
-    {
-        translationY = 10.f;
-        translation = true;
-    }
-    if (key == GLFW_KEY_S)
-    {
-        translationY = -10.f;
-        translation = true;
-    }
-    if (translation)
-    {
-        board->Translate(translationX, translationY);
+        // board->KeyEvent('p');
     }
 }
 

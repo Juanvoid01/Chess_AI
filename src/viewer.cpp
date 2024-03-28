@@ -1,15 +1,10 @@
 #include <iostream>
-
-#include "EventManager.hpp"
 #include "viewer.hpp"
-#include "Board.hpp"
-#include "Perft.hpp"
-//#include "TextObject.hpp"
-#include "InformationText.hpp"
 
+Viewer::Viewer()
+{
+}
 void DrawText(GLTtext *gltText, const glm::mat4 &mvp);
-
-void Update();
 
 void Viewer::Run()
 {
@@ -53,34 +48,29 @@ void Viewer::Run()
 
     {
 
-        int windowWidth, windowHeight;
-        glfwGetWindowSize(window, &windowWidth, &windowHeight);
-
         GLCall(glEnable(GL_BLEND));
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        ChessAI chessAI;
-        
-        std::shared_ptr<Renderer> renderer = std::make_shared<Renderer>(windowWidth, windowHeight,&DrawText);
-        InformationText infoText(800.f, 150.f, *renderer);
-        infoText.SetScale(1.3f, 1.3f);
-        std::shared_ptr<Board> board = std::make_shared<Board>(0.0f, 0.0f, 550.0f, 550.0f, *renderer, chessAI, infoText);
-        // board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
-        EventManager eventManager(window, renderer, board);
+        glfwGetWindowSize(window, &windowWidth, &windowHeight);
 
-        board->SetCenter(windowWidth / 2, windowHeight / 2);
+        renderer = std::make_unique<Renderer>(windowWidth, windowHeight, &DrawText);
+
+        controller = std::make_unique<Controller>(*renderer);
+
+        eventManager = std::make_unique<EventManager>(window, renderer.get());
 
         // Loop until the user closes the window
 
         while (!glfwWindowShouldClose(window))
         {
+
+            controller->Update();
+
             renderer->Clear();
 
-            board->Render();
+            controller->Render();
 
-            infoText.Render();
-            // Swap front and back buffers
-            glfwSwapBuffers(window);
+            glfwSwapBuffers(glfwGetCurrentContext());
 
             // Poll for and process events
             glfwPollEvents();
@@ -89,19 +79,6 @@ void Viewer::Run()
     // Cleanup
     gltTerminate();
     glfwTerminate();
-}
-
-void Viewer::Update()
-{
-}
-
-void Viewer::Render()
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Your drawing functions go here
-
-    glfwSwapBuffers(glfwGetCurrentContext());
 }
 
 void DrawText(GLTtext *gltText, const glm::mat4 &mvp)
