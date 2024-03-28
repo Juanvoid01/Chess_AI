@@ -23,9 +23,12 @@ public:
     void MakeMove(const Move &move);
     void MakeIAmove();
 
+    inline Board &GetBoard() { return *board; }
+
 private:
     const Renderer &renderer;
 
+    MoveGenerator moveGenerator;
     ChessAI chessAI;
     std::unique_ptr<InformationText> informationText;
     std::unique_ptr<Board> board;

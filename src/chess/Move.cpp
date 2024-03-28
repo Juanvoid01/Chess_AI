@@ -15,6 +15,23 @@ Move::Move(Move &&other) noexcept
 {
 }
 
+bool Move::IsValid() const
+{
+    return type != MoveType::INVALID && iniRow >= 0 && iniCol >= 0 && endRow >= 0 && endCol >= 0;
+}
+
+bool Move::IsPromotion() const
+{
+    return type == MoveType::QUEENPROMOTION ||
+           type == MoveType::KNIGHTPROMOTION ||
+           type == MoveType::ROOKPROMOTION ||
+           type == MoveType::BISHOPPROMOTION ||
+           type == MoveType::QUEENPROMOCAPTURE ||
+           type == MoveType::KNIGHTPROMOCAPTURE ||
+           type == MoveType::ROOKPROMOCAPTURE ||
+           type == MoveType::BISHOPPROMOCAPTURE;
+}
+
 Move &Move::operator=(const Move &other)
 {
     if (this != &other)

@@ -44,6 +44,10 @@ public:
 
     Move &operator=(Move &&other) noexcept;
 
+    bool IsValid() const;
+    
+    bool IsPromotion() const;
+    
     std::string ToBasicString() const;
 };
 

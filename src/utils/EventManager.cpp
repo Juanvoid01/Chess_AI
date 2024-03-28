@@ -1,10 +1,10 @@
 #include "EventManager.hpp"
 
-EventManager::EventManager(GLFWwindow *window, Renderer *r, Controller* ctrl)
+EventManager::EventManager(GLFWwindow *window, Renderer *r, Controller *ctrl)
 {
     renderer = r;
     controller = ctrl;
-    
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glfwSetMouseButtonCallback(window, Mouse_click_callback);
@@ -20,11 +20,16 @@ void EventManager::Mouse_click_callback(GLFWwindow *window, int button, int acti
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        /*double xpos, ypos;
+        double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
         ypos = renderer->GetWindowHeight() - ypos;
 
-        board->ClickEvent(xpos, ypos);*/
+        Move move = controller->GetBoard().ClickEvent(xpos, ypos);
+
+        if (move.IsValid())
+        {
+            controller->AddAction(new MovePieceAction(move));
+        }
     }
 }
 
@@ -39,11 +44,7 @@ void EventManager::Key_pressed_callback(GLFWwindow *window, int key, int scancod
         return;
     }
 
-    if (key == GLFW_KEY_X)
-    {
-        // board->KeyEvent('x');
-    }
-    else if (key == GLFW_KEY_R)
+    if (key == GLFW_KEY_R)
     {
         controller->AddAction(new RotateBoardAction());
     }

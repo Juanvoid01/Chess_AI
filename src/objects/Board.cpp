@@ -2,8 +2,8 @@
 
 #include <thread>
 
-Board::Board(float posX, float posY, float width, float height, const Renderer &r, ChessAI &chessAI, InformationText &infoText)
-    : Object(r, TextureName::BOARD, posX, posY, width, height), chessAI(chessAI), infoText(infoText)
+Board::Board(float posX, float posY, float width, float height, const Renderer &r, ChessAI &chessAI, MoveGenerator &moveGen)
+    : Object(r, TextureName::BOARD, posX, posY, width, height), chessAI(chessAI), moveGenerator(moveGen), state(State::UNSELECTED)
 {
     squareWidth = width / 8.f;
     squareHeight = height / 8.f;
@@ -138,34 +138,16 @@ void Board::SetCenter(float x, float y)
 }
 
 // handle mouse inputs on the board, move pieces, promotion.
-void Board::ClickEvent(float mouseX, float mouseY)
+// returns the move done, if not, returns invalid move
+Move Board::ClickEvent(float mouseX, float mouseY)
 {
     static int rowPieceSelected;
     static int colPieceSelected;
 
-    if (promotionSelector->IsInSelection())
-    {
-        promoPiece = promotionSelector->GetSelectedPiece(mouseX, mouseY);
-
-        if (promoPiece == PieceType::EMPTY)
-            return;
-
-        Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, promotionSelector->GetPromoRow(), promotionSelector->GetPromoCol());
-
-        MakeMove(selectedMove);
-
-        UnSelectBoard();
-        SelectLastMove();
-
-        pieceSelected = false;
-
-        return;
-    }
-
     if (!PosInside(mouseX, mouseY))
     {
-        pieceSelected = false;
-        return;
+        state = State::UNSELECTED;
+        return InvalidMove;
     }
 
     short row, col;
@@ -173,31 +155,13 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
     if (row < 0 || row >= 8 || col < 0 || col >= 8)
     {
-        return;
+        state = State::UNSELECTED;
+        return InvalidMove;
     }
 
-    if (pieceSelected)
-    {
-        if (GetPType(rowPieceSelected, colPieceSelected) == PieceType::PAWN)
-        {
-            if ((row == 7 || row == 0) && IsValidMove(rowPieceSelected, colPieceSelected, row, col))
-            {
-                promotionSelector->StartSelection(row, col, GetPColor(rowPieceSelected, colPieceSelected), rotated);
-                return;
-            }
-        }
+    Move moveSelected = InvalidMove;
 
-        Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, row, col);
-
-        pieceSelected = false;
-
-        if (selectedMove.iniRow != -1)
-            MakeMove(selectedMove);
-
-        UnSelectBoard();
-        SelectLastMove();
-    }
-    else
+    if (state == State::UNSELECTED)
     {
         if (!PosEmpty(row, col))
         {
@@ -206,65 +170,67 @@ void Board::ClickEvent(float mouseX, float mouseY)
 
             if (SelectLegalMovesFrom(rowPieceSelected, colPieceSelected) > 0)
             {
-                pieceSelected = true;
+                state = State::PIECE_SELECTED;
                 SelectSquare(row, col);
             }
         }
     }
+    else if (state == State::PIECE_SELECTED)
+    {
+        if (GetPType(rowPieceSelected, colPieceSelected) == PieceType::PAWN &&
+            (row == 7 || row == 0) && IsValidMove(rowPieceSelected, colPieceSelected, row, col))
+        {
+            state = State::SELECTING_PROMO;
+            promotionSelector->StartSelection(row, col, GetPColor(rowPieceSelected, colPieceSelected), rotated);
+        }
+        else
+        {
+            Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, row, col);
+
+            state = State::UNSELECTED;
+
+            if (selectedMove.IsValid())
+            {
+                MakeMove(selectedMove);
+            }
+            else
+            {
+                UnSelectBoard();
+                SelectLastMove();
+            }
+        }
+    }
+    else if (state == State::SELECTING_PROMO)
+    {
+        promoPiece = promotionSelector->GetSelectedPiece(mouseX, mouseY);
+
+        if (promoPiece != PieceType::EMPTY)
+        {
+            Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, promotionSelector->GetPromoRow(), promotionSelector->GetPromoCol());
+
+            MakeMove(selectedMove);
+            state = State::UNSELECTED;
+        }
+    }
+    else if (state == State::WAITING_IA)
+    {
+    }
+    else
+    {
+    }
+
+    return moveSelected; // invalidMove
 }
 
 void Board::Rotate()
 
 {
-    if (promotionSelector->IsInSelection())
+    if (state == State::SELECTING_PROMO)
         return;
     rotated = !rotated;
     CopyBoardFromEngine();
     UnSelectBoard();
     SelectLastMove();
-}
-
-// handle keyboard inputs on the board, rotation 'r'.
-void Board::KeyEvent(char key)
-{
-    if (key == 'x' || key == 'X')
-    {
-        moveGenerator.UnMakeMove(moveGenerator.GetLastMove(), moveGenerator.GetStateInfo());
-        CopyBoardFromEngine();
-    }
-    else if (key == 'r' || key == 'R')
-    {
-        Rotate();
-    }
-    else if (key == 'p' || key == 'P')
-    {
-
-        MoveGenerator *movegen = &moveGenerator;
-        ChessAI *ai = &chessAI;
-
-        auto startSearchFunc = [ai, movegen]()
-        {
-            ai->StartSearch(*movegen);
-        };
-
-        std::thread searchWorker(startSearchFunc);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        chessAI.AbortSearch();
-
-        searchWorker.join();
-
-        infoText.SetState(chessAI.IsSearching() ? "Search started" : "Search finished");
-        infoText.SetDepth("Depth : " + std::to_string(chessAI.depthReached));
-        infoText.SetNodes("Nodes : " + std::to_string(chessAI.nodesVisited));
-
-        Move moveAI = chessAI.GetBestMove();
-
-        MakeMove(moveAI);
-        UnSelectBoard();
-        SelectLastMove();
-    }
 }
 
 // executes a move in the moveGenerator, then updates the legal moves and the board
@@ -279,6 +245,9 @@ void Board::MakeMove(Move move)
     CopyBoardFromEngine();
     UpdateLegalMoves();
     checkResult();
+
+    UnSelectBoard();
+    SelectLastMove();
 }
 
 // highlights the last move played

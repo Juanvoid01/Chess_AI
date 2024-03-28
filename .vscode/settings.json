@@ -56,6 +56,7 @@
         "sstream": "cpp",
         "cstring": "cpp",
         "iomanip": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "condition_variable": "cpp"
     }
 }
