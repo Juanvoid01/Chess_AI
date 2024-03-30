@@ -13,8 +13,8 @@ public:
     {
         UNSELECTED,
         PIECE_SELECTED,
-        WAITING_IA,
-        SELECTING_PROMO
+        SELECTING_PROMO,
+        MOVING_PIECES
     };
 
     Board(float posX, float posY, float width, float height, const Renderer &r, ChessAI &chessAI, MoveGenerator &moveGen);
@@ -37,14 +37,16 @@ public:
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
 
-    // handle mouse inputs on the board, move pieces, promotion.
-    // returns the move done, if not, returns invalid move
-    Move ClickEvent(float mouseX, float mouseY);
+    // returns true if the board has been clicked
+    bool ClickEvent(float mouseX, float mouseY);
 
     void Rotate();
 
     // executes a move in the moveGenerator, then updates the legal moves and the board
     void MakeMove(Move move);
+
+    // executes the move selected by the IA
+    void MoveIA(Move move);
 
     // highlights the last move played
     void SelectLastMove();
@@ -77,6 +79,12 @@ private:
 
     std::unique_ptr<PromotionSelector> promotionSelector;
 
+    bool clicked = false;
+    short rowClicked = -1, colClicked = -1;
+    float clickX = -1, clickY = -1;
+    Move selectedMove = InvalidMove;
+
+    std::unique_ptr<Piece> movingPiece;
     // brings all pieces in chessEngine to the board in screen, it considers rotation
     void CopyBoardFromEngine();
 
@@ -121,4 +129,13 @@ private:
 
     // calls the moveGenerator and stores the legal moves in an array.
     inline void UpdateLegalMoves();
+
+    // Add the pieces involved in the move to the movingPiecesVector
+    void AddMoveToMovingPieces(const Move &move);
+
+    // Get the coords of the center of the square row, col
+    void GetCoordsOfSquare(short row, short col, float &posX, float &posY) const;
+
+    // set All pieces visibility to a value
+    void SetPiecesVisibility(bool value);
 };

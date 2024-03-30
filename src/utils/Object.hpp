@@ -15,6 +15,8 @@ public:
 
     void Render();
 
+    void Update();
+
     inline const glm::mat4 &GetMVP() const { return mvp; }
 
     inline void ReCalculateMVP() { mvp = renderer.GetProjection() * renderer.GetView() * model; }
@@ -23,6 +25,7 @@ public:
     void SetScale(float x, float y);
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
+    void SetVelocity(float x, float y);
 
     inline void SetTexture(TextureName newTexture) { textureName = newTexture; }
     inline void SetShader(ShaderName newShader) { shaderName = newShader; }
@@ -35,16 +38,28 @@ public:
     inline float GetY() const { return y; }
     inline const glm::vec4 &GetColor() const { return color; }
 
+    inline float GetvelX() const { return velocity.x; }
+    inline float GetvelY() const { return velocity.y; }
+
     inline bool PosInside(float px, float py) const
     {
         return px >= x && px <= x + width && py >= y && py <= y + height;
     }
 
+    // Calculate direction vector of the object to the point Dest, then normalize the vector
+    void DirectionTo(float destX, float destY, float &dirX, float &dirY) const;
+
+    // Calculate distance to the given point
+    float DistanceTo(float pointX, float pointY) const;
+
 protected:
     const Renderer &renderer;
     glm::mat4 mvp;
 
+    glm::vec3 velocity;
+
 private:
+
     float originalWidth;
     float originalHeight;
     float originX = 0.0f;

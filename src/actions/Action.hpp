@@ -23,7 +23,6 @@ protected:
 enum class Action::Type
 {
     NONE = 0,
-    MOVEPIECE = 1,
-    IA = 2,
-    ROTATEBOARD = 3
+    IA = 1,
+    ROTATEBOARD = 2
 };

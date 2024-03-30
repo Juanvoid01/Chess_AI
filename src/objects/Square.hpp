@@ -9,6 +9,7 @@ public:
 
     void Render();
 
+    inline const Piece &GetPieceObject() const { return piece; }
     inline PieceType GetPiece() const { return piece.type; }
     inline PieceColor GetPieceColor() const { return piece.color; }
     inline int GetRow() const { return row; }
@@ -37,6 +38,8 @@ public:
         Object::SetCenter(x, y);
         piece.SetCenter(x, y);
     }
+
+    inline void SetVisibility(bool value) { piece.invisible = !value; }
 
     inline bool IsSelected() const { return selected; }
 

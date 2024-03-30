@@ -45,11 +45,112 @@ void Board::Render()
 
     if (promotionSelector->IsInSelection())
         promotionSelector->Render();
+
+    if (state == State::MOVING_PIECES)
+    {
+        movingPiece->Render();
+        /*for (Piece &piece : movingPieces)
+        {
+            piece.Render();
+        }*/
+    }
 }
 
 // update board state
 void Board::Update()
 {
+    static int rowPieceSelected;
+    static int colPieceSelected;
+
+    if (state == State::UNSELECTED)
+    {
+        if (clicked)
+        {
+            clicked = false;
+        }
+        else
+        {
+            return;
+        }
+
+        if (!PosEmpty(rowClicked, colClicked))
+        {
+            rowPieceSelected = rowClicked;
+            colPieceSelected = colClicked;
+
+            if (SelectLegalMovesFrom(rowPieceSelected, colPieceSelected) > 0)
+            {
+                state = State::PIECE_SELECTED;
+                SelectSquare(rowPieceSelected, colPieceSelected);
+            }
+        }
+    }
+    else if (state == State::PIECE_SELECTED)
+    {
+        if (clicked)
+        {
+            clicked = false;
+        }
+        else
+        {
+            return;
+        }
+
+        if (GetPType(rowPieceSelected, colPieceSelected) == PieceType::PAWN &&
+            (rowClicked == 7 || rowClicked == 0) && IsValidMove(rowPieceSelected, colPieceSelected, rowClicked, colClicked))
+        {
+            state = State::SELECTING_PROMO;
+            promotionSelector->StartSelection(rowClicked, colClicked, GetPColor(rowPieceSelected, colPieceSelected), rotated);
+        }
+        else
+        {
+            selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, rowClicked, colClicked);
+
+            if (selectedMove.IsValid())
+            {
+                AddMoveToMovingPieces(selectedMove);
+                state = State::MOVING_PIECES;
+            }
+            else
+            {
+                state = State::UNSELECTED;
+                UnSelectBoard();
+                SelectLastMove();
+            }
+        }
+    }
+    else if (state == State::SELECTING_PROMO)
+    {
+        if (clicked)
+        {
+            clicked = false;
+        }
+        else
+        {
+            return;
+        }
+
+        promoPiece = promotionSelector->GetSelectedPiece(clickX, clickY);
+
+        if (promoPiece != PieceType::EMPTY)
+        {
+            selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, promotionSelector->GetPromoRow(), promotionSelector->GetPromoCol());
+            AddMoveToMovingPieces(selectedMove);
+            state = State::MOVING_PIECES;
+        }
+    }
+    else if (state == State::MOVING_PIECES)
+    {
+        movingPiece->Update();
+        if (movingPiece->state == Piece::State::QUIET)
+        {
+            MakeMove(selectedMove);
+            state = State::UNSELECTED;
+        }
+    }
+    else
+    {
+    }
 }
 
 // remove all pieces from the board
@@ -137,93 +238,36 @@ void Board::SetCenter(float x, float y)
     promotionSelector->SetCenter(GetX(), GetY());
 }
 
-// handle mouse inputs on the board, move pieces, promotion.
-// returns the move done, if not, returns invalid move
-Move Board::ClickEvent(float mouseX, float mouseY)
+// returns true if the board has been clicked
+bool Board::ClickEvent(float mouseX, float mouseY)
 {
-    static int rowPieceSelected;
-    static int colPieceSelected;
-
     if (!PosInside(mouseX, mouseY))
-    {
-        state = State::UNSELECTED;
-        return InvalidMove;
-    }
+        return false;
 
-    short row, col;
-    GetSquareClicked(mouseX, mouseY, row, col);
+    GetSquareClicked(mouseX, mouseY, rowClicked, colClicked);
 
-    if (row < 0 || row >= 8 || col < 0 || col >= 8)
-    {
-        state = State::UNSELECTED;
-        return InvalidMove;
-    }
+    if (rowClicked < 0 || rowClicked >= 8 || colClicked < 0 || colClicked >= 8)
+        return false;
 
-    Move moveSelected = InvalidMove;
+    clicked = true;
+    clickX = mouseX;
+    clickY = mouseY;
 
-    if (state == State::UNSELECTED)
-    {
-        if (!PosEmpty(row, col))
-        {
-            rowPieceSelected = row;
-            colPieceSelected = col;
+    return true;
+}
 
-            if (SelectLegalMovesFrom(rowPieceSelected, colPieceSelected) > 0)
-            {
-                state = State::PIECE_SELECTED;
-                SelectSquare(row, col);
-            }
-        }
-    }
-    else if (state == State::PIECE_SELECTED)
-    {
-        if (GetPType(rowPieceSelected, colPieceSelected) == PieceType::PAWN &&
-            (row == 7 || row == 0) && IsValidMove(rowPieceSelected, colPieceSelected, row, col))
-        {
-            state = State::SELECTING_PROMO;
-            promotionSelector->StartSelection(row, col, GetPColor(rowPieceSelected, colPieceSelected), rotated);
-        }
-        else
-        {
-            Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, row, col);
-
-            state = State::UNSELECTED;
-
-            if (selectedMove.IsValid())
-            {
-                MakeMove(selectedMove);
-            }
-            else
-            {
-                UnSelectBoard();
-                SelectLastMove();
-            }
-        }
-    }
-    else if (state == State::SELECTING_PROMO)
-    {
-        promoPiece = promotionSelector->GetSelectedPiece(mouseX, mouseY);
-
-        if (promoPiece != PieceType::EMPTY)
-        {
-            Move selectedMove = FindMoveSelected(rowPieceSelected, colPieceSelected, promotionSelector->GetPromoRow(), promotionSelector->GetPromoCol());
-
-            MakeMove(selectedMove);
-            state = State::UNSELECTED;
-        }
-    }
-    else if (state == State::WAITING_IA)
-    {
-    }
-    else
-    {
-    }
-
-    return moveSelected; // invalidMove
+// executes the move selected by the IA
+void Board::MoveIA(Move move)
+{
+    if (state != State::UNSELECTED)
+        return;
+        
+    state = State::MOVING_PIECES;
+    selectedMove = move;
+    AddMoveToMovingPieces(selectedMove);
 }
 
 void Board::Rotate()
-
 {
     if (state == State::SELECTING_PROMO)
         return;
@@ -240,7 +284,7 @@ void Board::MakeMove(Move move)
         return;
     if (move.iniRow == move.endRow && move.iniCol == move.endCol)
         return;
-
+    SetPiecesVisibility(true);
     moveGenerator.MakeMove(move);
     CopyBoardFromEngine();
     UpdateLegalMoves();
@@ -248,6 +292,7 @@ void Board::MakeMove(Move move)
 
     UnSelectBoard();
     SelectLastMove();
+    squares[move.iniRow][move.iniCol]->SetVisibility(true);
 }
 
 // highlights the last move played
@@ -283,6 +328,18 @@ void Board::UnSelectBoard()
         for (int j = 0; j < 8; j++)
         {
             UnSelectSquare(i, j);
+        }
+    }
+}
+
+// set All pieces visibility to a value
+void Board::SetPiecesVisibility(bool value)
+{
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            squares[i][j]->SetVisibility(value);
         }
     }
 }
@@ -509,4 +566,29 @@ inline void Board::UnSelectSquare(int row, int col)
     if (!ValidPos(row, col))
         return;
     return squares[row][col]->UnSelect();
+}
+
+// Add the pieces involved in the move to the movingPiecesVector
+void Board::AddMoveToMovingPieces(const Move &move)
+{
+
+    Piece p = squares[move.iniRow][move.iniCol]->GetPieceObject();
+    PieceType ptype = squares[move.iniRow][move.iniCol]->GetPiece();
+    PieceColor pcolor = squares[move.iniRow][move.iniCol]->GetPieceColor();
+
+    float endX, endY;
+    float iniX, iniY;
+    GetCoordsOfSquare(move.iniRow, move.iniCol, iniX, iniY);
+    GetCoordsOfSquare(move.endRow, move.endCol, endX, endY);
+    movingPiece = std::make_unique<Piece>(iniX, iniY, squareWidth, squareHeight, ptype, pcolor, renderer);
+    movingPiece->MoveTo(endX, endY);
+
+    squares[move.iniRow][move.iniCol]->SetVisibility(false);
+}
+
+// Get the coords of the center of the square row, col
+void Board::GetCoordsOfSquare(short row, short col, float &posX, float &posY) const
+{
+    posX = GetX() + squareWidth * col;
+    posY = GetY() + squareHeight * row;
 }

@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "NoneAction.hpp"
-#include "MovePieceAction.hpp"
 #include "AIaction.hpp"
 #include "RotateBoardAction.hpp"
 

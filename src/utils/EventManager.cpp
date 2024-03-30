@@ -24,12 +24,8 @@ void EventManager::Mouse_click_callback(GLFWwindow *window, int button, int acti
         glfwGetCursorPos(window, &xpos, &ypos);
         ypos = renderer->GetWindowHeight() - ypos;
 
-        Move move = controller->GetBoard().ClickEvent(xpos, ypos);
+        bool boardClicked = controller->GetBoard().ClickEvent(xpos, ypos);
 
-        if (move.IsValid())
-        {
-            controller->AddAction(new MovePieceAction(move));
-        }
     }
 }
 

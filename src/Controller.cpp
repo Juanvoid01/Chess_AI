@@ -20,6 +20,7 @@ Controller::Controller(const Renderer &renderer)
 void Controller::Update()
 {
     actions->ExecuteActions();
+    board->Update();
 }
 void Controller::Render()
 {
@@ -56,5 +57,5 @@ void Controller::MakeIAmove()
 
     Move moveAI = chessAI.GetBestMove();
 
-    board->MakeMove(moveAI);
+    board->MoveIA(moveAI);
 }

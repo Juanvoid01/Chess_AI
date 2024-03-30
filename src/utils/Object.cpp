@@ -40,6 +40,7 @@ Object::Object(const Renderer &r, glm::vec4 color, float posX, float posY, float
       width, height, 1.0f, 1.0f,
       0.0f, height, 0.0f, 1.0f};
 
+  velocity = glm::vec3(0, 0, 0);
   positionVector = glm::vec3(posX, posY, 0);
   translationVector = glm::vec3(0, 0, 0);
   scaleVector = glm::vec3(1, 1, 1);
@@ -66,8 +67,11 @@ Object::~Object()
 
 void Object::Render()
 {
-
   renderer.Draw(va, ib, mvp, shaderName, textureName, color);
+}
+
+void Object::Update()
+{
 }
 
 void Object::Translate(float x, float y)
@@ -103,6 +107,12 @@ void Object::SetCenter(float x, float y)
   ReCalculateMVP();
 }
 
+void Object::SetVelocity(float x, float y)
+{
+  velocity.x = x;
+  velocity.y = y;
+}
+
 void Object::RecalculateModel()
 {
   model = glm::translate(glm::mat4(1.0f), positionVector);
@@ -113,4 +123,31 @@ void Object::RecalculateModel()
   height = originalHeight * scaleVector.y;
   x = positionVector.x + translationVector.x;
   y = positionVector.y + translationVector.y;
+}
+
+// Calculate direction vector of the object to the point Dest, then normalize the vector
+void Object::DirectionTo(float destX, float destY, float &dirX, float &dirY) const
+{
+
+  dirX = destX - GetX();
+  dirY = destY - GetY();
+
+
+  float length = std::sqrt(dirX * dirX + dirY * dirY);
+
+  // Normalize the direction vector
+  if (length != 0)
+  {
+    dirX /= length;
+    dirY /= length;
+  }
+}
+
+// Calculate distance to the given point
+float Object::DistanceTo(float pointX, float pointY) const
+{
+  float dx = pointX - GetX();
+  float dy = pointY - GetY();
+
+  return std::sqrt(dx * dx + dy * dy);
 }
