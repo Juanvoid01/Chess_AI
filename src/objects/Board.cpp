@@ -49,10 +49,6 @@ void Board::Render()
     if (state == State::MOVING_PIECES)
     {
         movingPiece->Render();
-        /*for (Piece &piece : movingPieces)
-        {
-            piece.Render();
-        }*/
     }
 }
 
@@ -238,6 +234,23 @@ void Board::SetCenter(float x, float y)
     promotionSelector->SetCenter(GetX(), GetY());
 }
 
+void Board::ReCalculateMVP()
+{
+    Object::ReCalculateMVP();
+    if (movingPiece != nullptr)
+        movingPiece->ReCalculateMVP();
+    promotionSelector->ReCalculateMVP();
+    resultText->ReCalculateMVP();
+
+    for (int row = 0; row < 8; row++)
+    {
+        for (int col = 0; col < 8; col++)
+        {
+            squares[row][col]->ReCalculateMVP();
+        }
+    }
+}
+
 // returns true if the board has been clicked
 bool Board::ClickEvent(float mouseX, float mouseY)
 {
@@ -261,7 +274,7 @@ void Board::MoveIA(Move move)
 {
     if (state != State::UNSELECTED)
         return;
-        
+
     state = State::MOVING_PIECES;
     selectedMove = move;
     AddMoveToMovingPieces(selectedMove);

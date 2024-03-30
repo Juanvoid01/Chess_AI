@@ -39,6 +39,12 @@ public:
         piece.SetCenter(x, y);
     }
 
+    inline void ReCalculateMVP()
+    {
+        Object::ReCalculateMVP();
+        piece.ReCalculateMVP();
+    }
+
     inline void SetVisibility(bool value) { piece.invisible = !value; }
 
     inline bool IsSelected() const { return selected; }

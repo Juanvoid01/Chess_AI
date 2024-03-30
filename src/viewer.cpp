@@ -21,7 +21,9 @@ void Viewer::Run()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(1024, 720, "Chess AI", NULL, NULL);
+
+    float windowWidth = 1366.f, windowHeight = 1000.f;
+    window = glfwCreateWindow(1366, 1000, "Chess AI", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -51,7 +53,7 @@ void Viewer::Run()
         GLCall(glEnable(GL_BLEND));
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        glfwGetWindowSize(window, &windowWidth, &windowHeight);
+        // glfwGetWindowSize(window, &windowWidth, &windowHeight);
 
         renderer = std::make_unique<Renderer>(windowWidth, windowHeight, &DrawText);
 

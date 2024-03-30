@@ -25,6 +25,8 @@ public:
 
     inline Board &GetBoard() { return *board; }
 
+    void Resize(float newWidth, float newHeight);
+
 private:
     const Renderer &renderer;
 

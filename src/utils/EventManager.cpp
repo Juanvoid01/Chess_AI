@@ -25,7 +25,6 @@ void EventManager::Mouse_click_callback(GLFWwindow *window, int button, int acti
         ypos = renderer->GetWindowHeight() - ypos;
 
         bool boardClicked = controller->GetBoard().ClickEvent(xpos, ypos);
-
     }
 }
 
@@ -54,5 +53,6 @@ void EventManager::framebuffer_size_callback(GLFWwindow *window, int width, int 
 {
     glViewport(0, 0, width, height);
     renderer->SetWindowWidth(width);
-    renderer->SetWindowWidth(height);
+    renderer->SetWindowHeight(height);
+    controller->Resize(width, height);
 }

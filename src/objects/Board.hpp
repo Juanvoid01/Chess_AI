@@ -36,7 +36,8 @@ public:
     void SetScale(float x, float y);
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
-
+    void ReCalculateMVP();
+    
     // returns true if the board has been clicked
     bool ClickEvent(float mouseX, float mouseY);
 

@@ -31,7 +31,7 @@ class Renderer
 public:
     typedef void (*DrawFunction)(GLTtext *, const glm::mat4 &);
 
-    Renderer(int windowWidth, int windowHeight, DrawFunction drawMethod);
+    Renderer(float windowWidth, float windowHeight, DrawFunction drawMethod);
     ~Renderer();
     void Draw(const VertexArray &va, const IndexBuffer &ib, const glm::mat4 &mvp,
               ShaderName shader, TextureName texture = TextureName::EMPTY, const glm::vec4 &color = glm::vec4(1.f)) const;
@@ -43,8 +43,12 @@ public:
 
     inline const glm::mat4 &GetProjection() const { return proj; }
     inline const glm::mat4 &GetView() const { return view; }
-    inline int GetWindowWidth() const { return windowWidth; }
-    inline int GetWindowHeight() const { return windowHeight; }
+
+    inline float GetWindowWidth() const { return windowWidth; }
+    inline float GetWindowHeight() const { return windowHeight; }
+
+    inline float GetOriginalWindowWidth() const { return originalWidth; }
+    inline float GetOriginalWindowHeight() const { return originalHeight; }
 
     void SetWindowWidth(int width);
     void SetWindowHeight(int height);
@@ -52,11 +56,14 @@ public:
     // Need the function pointer to the draw Text Method
     DrawFunction drawFunction;
 private:
-    int windowWidth;
-    int windowHeight;
+    float windowWidth;
+    float windowHeight;
 
-    glm::mat4 proj = glm::ortho(0.0f, 1024.0f, 0.f, 720.f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+    float originalWidth;
+    float originalHeight;
+
+    glm::mat4 proj;
+    glm::mat4 view;
 
     mutable ShaderManager shaderManager;
     TextureManager textureManager;

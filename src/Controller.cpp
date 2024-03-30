@@ -2,16 +2,16 @@
 
 #include <thread>
 
-
 Controller::Controller(const Renderer &renderer)
     : renderer(renderer)
 {
+    float boardWidth = renderer.GetWindowHeight() * 8.f / 12.f;
 
     informationText = std::make_unique<InformationText>(800.f, 150.f, renderer);
-    board = std::make_unique<Board>(0.0f, 0.0f, 550.0f, 550.0f, renderer, chessAI, moveGenerator);
+    board = std::make_unique<Board>(0.0f, 0.0f, boardWidth, boardWidth, renderer, chessAI, moveGenerator);
     actionController = std::make_unique<ActionController>(*this);
     actions = std::make_unique<Actions>(*actionController);
-    informationText->SetScale(1.3f, 1.3f);
+    //informationText->SetScale(1.3f, 1.3f);
     // board.LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
 
     board->SetCenter(renderer.GetWindowWidth() / 2.f, renderer.GetWindowHeight() / 2.f);
@@ -58,4 +58,15 @@ void Controller::MakeIAmove()
     Move moveAI = chessAI.GetBestMove();
 
     board->MoveIA(moveAI);
+}
+
+void Controller::Resize(float newWidth, float newHeight)
+{
+    float newScale = newHeight / renderer.GetOriginalWindowHeight();
+    // board->ReCalculateMVP();
+    // informationText->ReCalculateMVP();
+    board->SetScale(newScale, newScale);
+    board->SetCenter(newWidth / 2.f, newHeight / 2.f);
+
+    informationText->SetScale(newScale, newScale);
 }

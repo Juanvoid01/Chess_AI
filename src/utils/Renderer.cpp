@@ -45,9 +45,12 @@ bool GLCheckError()
     return true;
 }
 
-Renderer::Renderer(int windowWidth, int windowHeight, DrawFunction drawMethod)
-    : windowWidth(windowWidth), windowHeight(windowHeight),drawFunction(drawMethod)
+Renderer::Renderer(float windowWidth, float windowHeight, DrawFunction drawMethod)
+    : windowWidth(windowWidth), windowHeight(windowHeight), drawFunction(drawMethod),
+      originalWidth(windowWidth), originalHeight(windowHeight)
 {
+    proj = glm::ortho(0.0f, windowWidth, 0.f, windowHeight, -1.0f, 1.0f);
+    view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 }
 
 Renderer::~Renderer()
@@ -98,9 +101,11 @@ void Renderer::Clear() const
 void Renderer::SetWindowWidth(int width)
 {
     windowWidth = width;
+    proj = glm::ortho(0.0f, (float)windowWidth, 0.f, (float)windowHeight, -1.0f, 1.0f);
 }
 
 void Renderer::SetWindowHeight(int height)
 {
     windowHeight = height;
+    proj = glm::ortho(0.0f, (float)windowWidth, 0.f, (float)windowHeight, -1.0f, 1.0f);
 }
