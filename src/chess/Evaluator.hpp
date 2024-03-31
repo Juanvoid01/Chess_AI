@@ -10,7 +10,7 @@ public:
 
     int GetEvaluation(const PieceArray &pieces, PieceColor turn);
 
-    int GetPieceValue(PieceType piece) const;
+    inline static int GetPieceValue(PieceType piece);
 
 private:
     const PieceArray *pieces;
@@ -96,3 +96,29 @@ private:
         {-45, -40, 10, 10, 10, 10, -40, -45},
         {-50, -45, -40, -35, -35, -40, -45, -50}};
 };
+
+
+inline int Evaluator::GetPieceValue(PieceType piece)
+{
+    switch (piece)
+    {
+    case PieceType::PAWN:
+        return 100;
+        break;
+    case PieceType::KNIGHT:
+        return 320;
+        break;
+    case PieceType::BISHOP:
+        return 330;
+        break;
+    case PieceType::ROOK:
+        return 500;
+        break;
+    case PieceType::QUEEN:
+        return 900;
+        break;
+    default:
+        return 0;
+        break;
+    }
+}

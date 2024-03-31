@@ -7,6 +7,9 @@
 
 #include "Actions.hpp"
 
+#include <chrono>
+#include <thread>
+
 class Controller
 {
 public:
@@ -36,4 +39,8 @@ private:
     std::unique_ptr<Board> board;
     std::unique_ptr<Actions> actions;
     std::unique_ptr<ActionController> actionController;
+
+    std::chrono::time_point<std::chrono::steady_clock> startTime;
+    bool waitingIA = false;
+    int thinkingAItime = 1000; //in miliseconds
 };

@@ -272,7 +272,10 @@ bool Board::ClickEvent(float mouseX, float mouseY)
 // executes the move selected by the IA
 void Board::MoveIA(Move move)
 {
-    if (state != State::UNSELECTED)
+    if (!move.IsValid())
+        return;
+
+    if (state != State::UNSELECTED && state != State::PIECE_SELECTED)
         return;
 
     state = State::MOVING_PIECES;

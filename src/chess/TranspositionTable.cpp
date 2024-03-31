@@ -8,7 +8,7 @@ TranspositionTable::TranspositionTable()
 
     entries.resize(numEntries);
     Clear();
-    count = numEntries;
+    count = (unsigned long)numEntries;
 
 }
 

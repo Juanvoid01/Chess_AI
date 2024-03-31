@@ -3,6 +3,7 @@
 #include "Evaluator.hpp"
 #include "MoveGenerator.hpp"
 #include "TranspositionTable.hpp"
+#include "MoveOrder.hpp"
 
 #include <atomic>
 
@@ -27,6 +28,7 @@ public:
 
 private:
     Evaluator evaluator;
+    MoveOrder moveOrder;
     MoveGenerator *moveGenerator;
 
     Move bestMoveInIteration;
@@ -49,14 +51,11 @@ private:
 
     int Search(int depth, int ply, int alpha, int beta);
 
-    void OrderMoves(MoveArray &moves, int n_moves);
-
-    // returns true if move1 is most promising than move2
-    bool MoveComparison(const Move &move1, const Move &move2);
-
     int SearchCaptures(int alpha, int beta);
 
     void RunIterativeDeepening(int maxDepth);
 
     inline bool IsMateScore(int score) const { return abs(score) > 90000; }
+
+    inline int NumPlyToMateFromScore(int score) const { return immediateMateScore - abs(score); }
 };

@@ -65,7 +65,7 @@ private:
     std::array<std::array<std::unique_ptr<Square>, 8>, 8> squares;
     float squareWidth;
     float squareHeight;
-    bool pieceSelected = false;
+    //bool pieceSelected = false;
 
     bool rotated = false;
 

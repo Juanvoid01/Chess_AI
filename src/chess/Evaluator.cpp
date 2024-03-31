@@ -65,8 +65,18 @@ int Evaluator::CountMaterial() const
             }
         }
     }
+
     if (inEndgame)
-        material +=(14 - GetKingSeparation(rowWK, colWK, rowBK, colBK));
+    {
+        if (material > 0) // white has more material
+        {
+            material += (14 - GetKingSeparation(rowWK, colWK, rowBK, colBK));
+        }
+        else if (material < 0) // black has more material
+        {
+            material -= (14 - GetKingSeparation(rowWK, colWK, rowBK, colBK));
+        }
+    }
 
     return material;
 }
@@ -114,31 +124,6 @@ int Evaluator::GetPieceRelativeValue(int row, int col) const
         break;
     }
     return value;
-}
-
-int Evaluator::GetPieceValue(PieceType piece) const
-{
-    switch (piece)
-    {
-    case PieceType::PAWN:
-        return 100;
-        break;
-    case PieceType::KNIGHT:
-        return 320;
-        break;
-    case PieceType::BISHOP:
-        return 330;
-        break;
-    case PieceType::ROOK:
-        return 500;
-        break;
-    case PieceType::QUEEN:
-        return 900;
-        break;
-    default:
-        return 0;
-        break;
-    }
 }
 
 bool Evaluator::IsEndgameFase()

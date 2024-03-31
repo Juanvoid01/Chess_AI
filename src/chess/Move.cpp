@@ -1,17 +1,17 @@
 #include "Move.hpp"
 
 Move::Move(short iniRow, short iniCol, short endRow, short endCol, MoveType type)
-    : iniRow(iniRow), iniCol(iniCol), endRow(endRow), endCol(endCol), type(type)
+    : iniRow(iniRow), iniCol(iniCol), endRow(endRow), endCol(endCol), type(type), evaluation(0)
 {
 }
 
 Move::Move(const Move &other)
-    : iniRow(other.iniRow), iniCol(other.iniCol), endRow(other.endRow), endCol(other.endCol), type(other.type)
+    : iniRow(other.iniRow), iniCol(other.iniCol), endRow(other.endRow), endCol(other.endCol), type(other.type), evaluation(other.evaluation)
 {
 }
 
 Move::Move(Move &&other) noexcept
-    : iniRow(other.iniRow), iniCol(other.iniCol), endRow(other.endRow), endCol(other.endCol), type(other.type)
+    : iniRow(other.iniRow), iniCol(other.iniCol), endRow(other.endRow), endCol(other.endCol), type(other.type), evaluation(other.evaluation)
 {
 }
 
@@ -41,6 +41,7 @@ Move &Move::operator=(const Move &other)
         endRow = other.endRow;
         endCol = other.endCol;
         type = other.type;
+        evaluation = other.evaluation;
     }
     return *this;
 }
@@ -54,6 +55,7 @@ Move &Move::operator=(Move &&other) noexcept
         endRow = other.endRow;
         endCol = other.endCol;
         type = other.type;
+        evaluation = other.evaluation;
     }
     return *this;
 }

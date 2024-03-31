@@ -11,16 +11,38 @@ Controller::Controller(const Renderer &renderer)
     board = std::make_unique<Board>(0.0f, 0.0f, boardWidth, boardWidth, renderer, chessAI, moveGenerator);
     actionController = std::make_unique<ActionController>(*this);
     actions = std::make_unique<Actions>(*actionController);
-    //informationText->SetScale(1.3f, 1.3f);
-    // board.LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
+    // informationText->SetScale(1.3f, 1.3f);
+    //  board.LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
 
     board->SetCenter(renderer.GetWindowWidth() / 2.f, renderer.GetWindowHeight() / 2.f);
 }
 
 void Controller::Update()
 {
+
     actions->ExecuteActions();
-    board->Update();
+
+    if (waitingIA)
+    {
+        informationText->SetState(chessAI.IsSearching() ? "Search started" : "Search finished");
+        informationText->SetDepth("Depth : " + std::to_string(chessAI.depthReached));
+        informationText->SetNodes("Nodes : " + std::to_string(chessAI.nodesVisited));
+
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
+        if (elapsed >= thinkingAItime)
+        {
+            waitingIA = false;
+            chessAI.AbortSearch();
+            Move moveAI = chessAI.GetBestMove();
+
+            board->MoveIA(moveAI);
+        }
+    }
+    else
+    {
+        board->Update();
+    }
 }
 void Controller::Render()
 {
@@ -44,20 +66,9 @@ void Controller::MakeIAmove()
     };
 
     std::thread searchWorker(startSearchFunc);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    chessAI.AbortSearch();
-
-    searchWorker.join();
-
-    informationText->SetState(chessAI.IsSearching() ? "Search started" : "Search finished");
-    informationText->SetDepth("Depth : " + std::to_string(chessAI.depthReached));
-    informationText->SetNodes("Nodes : " + std::to_string(chessAI.nodesVisited));
-
-    Move moveAI = chessAI.GetBestMove();
-
-    board->MoveIA(moveAI);
+    searchWorker.detach();
+    waitingIA = true;
+    startTime = std::chrono::steady_clock::now();
 }
 
 void Controller::Resize(float newWidth, float newHeight)

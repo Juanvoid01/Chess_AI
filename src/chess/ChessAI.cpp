@@ -28,17 +28,29 @@ void ChessAI::StartSearch(MoveGenerator &moveGen)
     turnToMove = moveGenerator->GetTurn();
     const int MAX_DEPTH = 100;
     RunIterativeDeepening(MAX_DEPTH);
+
+    if (!bestMoveFound.IsValid())
+    {
+        std::cout << "\nBest move found not valid\n";
+
+        MoveArray moves;
+        int n_moves = 0;
+        moveGenerator->GetLegalMoves(moves, n_moves);
+        bestMoveFound = moves[0];
+    }
 }
 
 void ChessAI::RunIterativeDeepening(int maxDepth)
 {
+
     abortSearch = false;
 
     std::cout << "Search started :\nDepths : ";
 
     for (int searchDepth = 1; searchDepth <= maxDepth; searchDepth++)
     {
-        depthReached = searchDepth; //debug
+
+        depthReached = searchDepth; // debug
 
         std::cout << searchDepth << ' ' << std::flush;
 
@@ -55,8 +67,9 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
             bestMoveFound = bestMoveInIteration;
             bestEvalFound = bestEvalInIteration;
 
-            if (IsMateScore(bestEvalFound))
+            if (IsMateScore(bestEvalFound) && NumPlyToMateFromScore(bestEvalFound) <= searchDepth)
             {
+                // We found a checkmate
                 break;
             }
         }
@@ -67,12 +80,13 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
 
 int ChessAI::Search(int depth, int ply, int alpha, int beta)
 {
-    nodesVisited++; //debug
-    
+
     if (abortSearch)
     {
         return 0;
     }
+
+    nodesVisited++; // debug
 
     if (ply > 0)
     {
@@ -115,10 +129,10 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
         return 0;
     }
 
-    OrderMoves(moves, n_moves);
+    moveOrder.OrderMoves(moves, n_moves, moveGenerator->GetPieceArray());
 
     int evaluationBound = ttTable.upperBound;
-    Move bestMoveInPosition = Move(-1, -1, -1, -1, MoveType::INVALID);
+    Move bestMoveInPosition = InvalidMove;
 
     PosStateInfo posInfoState = moveGenerator->GetStateInfo();
 
@@ -146,6 +160,8 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
         if (evaluation > alpha)
         {
+            //bestMoveInPosition = moves[i];
+
             evaluationBound = ttTable.exact;
             alpha = evaluation;
             if (ply == 0)
@@ -161,6 +177,13 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
 int ChessAI::SearchCaptures(int alpha, int beta)
 {
+    if (abortSearch)
+    {
+        return 0;
+    }
+
+    nodesVisited++; // debug
+
     int evaluation = evaluator.GetEvaluation(moveGenerator->GetPieceArray(), moveGenerator->GetTurn());
 
     if (evaluation >= beta)
@@ -200,69 +223,4 @@ int ChessAI::SearchCaptures(int alpha, int beta)
     }
 
     return alpha;
-}
-
-void ChessAI::OrderMoves(MoveArray &moves, int n_moves)
-{
-
-    bool swapped;
-    for (int i = 0; i < n_moves - 1; ++i)
-    {
-        swapped = false;
-        for (int j = 0; j < n_moves - i - 1; ++j)
-        {
-            if (!MoveComparison(moves[j], moves[j + 1]))
-            {
-                std::swap(moves[j], moves[j + 1]);
-                swapped = true;
-            }
-        }
-        if (!swapped)
-            break;
-    }
-}
-
-// returns true if move1 is most promising than move2
-bool ChessAI::MoveComparison(const Move &move1, const Move &move2)
-{
-    int value1, value2;
-
-    switch (move1.type)
-    {
-    case MoveType::CAPTURE:
-        value1 = 5;
-        break;
-    case MoveType::QUIET:
-        value1 = 1;
-        break;
-    case MoveType::DOUBLEPAWNPUSH:
-        value1 = 1;
-        break;
-    default:
-        value1 = 2;
-        break;
-    }
-
-    switch (move2.type)
-    {
-    case MoveType::CAPTURE:
-        value2 = 5;
-        break;
-    case MoveType::QUIET:
-        value2 = 1;
-        break;
-    case MoveType::DOUBLEPAWNPUSH:
-        value2 = 1;
-        break;
-    default:
-        value2 = 2;
-        break;
-    }
-
-    const PieceArray &pieces = moveGenerator->GetPieceArray();
-
-    value1 += evaluator.GetPieceValue(pieces[move1.iniRow][move1.iniCol].type);
-    value2 += evaluator.GetPieceValue(pieces[move2.iniRow][move2.iniCol].type);
-
-    return value1 > value2;
 }
