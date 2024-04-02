@@ -1,22 +1,21 @@
 #include "ChessAI.hpp"
 #include <iostream>
 
-ChessAI::ChessAI()
+ChessAI::ChessAI(std::shared_ptr<MoveGenerator> moveGen)
+    : moveGenerator(moveGen), searching(false)
 {
-    searching = false;
+
 }
 
 ChessAI::~ChessAI()
 {
 }
 
-void ChessAI::StartSearch(MoveGenerator &moveGen)
+void ChessAI::StartSearch(int maxDepth)
 {
     depthReached = 0;
     nodesVisited = 0;
     searching = true;
-
-    moveGenerator = &moveGen;
 
     bestEvalInIteration = 0;
     bestMoveInIteration = InvalidMove;
@@ -26,18 +25,20 @@ void ChessAI::StartSearch(MoveGenerator &moveGen)
     zobrist.InitializeHashWithPos(moveGenerator->GetPieceArray());
 
     turnToMove = moveGenerator->GetTurn();
-    const int MAX_DEPTH = 100;
-    RunIterativeDeepening(MAX_DEPTH);
+
+    RunIterativeDeepening(maxDepth);
 
     if (!bestMoveFound.IsValid())
     {
-        std::cout << "\nBest move found not valid\n";
+        std::cout << "\nRandom move selected\n";
 
         MoveArray moves;
         int n_moves = 0;
         moveGenerator->GetLegalMoves(moves, n_moves);
         bestMoveFound = moves[0];
     }
+
+    searching = false;
 }
 
 void ChessAI::RunIterativeDeepening(int maxDepth)
@@ -75,7 +76,6 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
         }
     }
     std::cout << "\nSearch Finished\n";
-    searching = false;
 }
 
 int ChessAI::Search(int depth, int ply, int alpha, int beta)
@@ -160,7 +160,7 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
         if (evaluation > alpha)
         {
-            //bestMoveInPosition = moves[i];
+            // bestMoveInPosition = moves[i];
 
             evaluationBound = ttTable.exact;
             alpha = evaluation;
@@ -177,10 +177,10 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
 int ChessAI::SearchCaptures(int alpha, int beta)
 {
-    if (abortSearch)
+    /*if (abortSearch)
     {
         return 0;
-    }
+    }*/
 
     nodesVisited++; // debug
 

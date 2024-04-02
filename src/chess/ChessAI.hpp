@@ -5,15 +5,15 @@
 #include "TranspositionTable.hpp"
 #include "MoveOrder.hpp"
 
-#include <atomic>
+#include <memory>
 
 class ChessAI
 {
 public:
-    ChessAI();
+    ChessAI(std::shared_ptr<MoveGenerator> moveGen);
     ~ChessAI();
 
-    void StartSearch(MoveGenerator &moveGen);
+    void StartSearch(int maxDepth = 100);
 
     inline Move GetBestMove() const { return bestMoveFound; };
 
@@ -21,15 +21,15 @@ public:
 
     inline int GetCurrentDepthInSearch() const { return currentDepthInSearch; }
 
-    inline bool IsSearching() const { return searching; }
+    volatile bool IsSearching() const { return searching; }
 
-    std::atomic<int> depthReached = 0;
-    std::atomic<int> nodesVisited = 0;
+    volatile int depthReached = 0;
+    volatile int nodesVisited = 0;
 
 private:
     Evaluator evaluator;
     MoveOrder moveOrder;
-    MoveGenerator *moveGenerator;
+    std::shared_ptr<MoveGenerator> moveGenerator;
 
     Move bestMoveInIteration;
     int bestEvalInIteration;
@@ -45,8 +45,8 @@ private:
     const int positiveInfinity = 9999999;
     const int negativeInfinity = -9999999;
 
-    bool searching;
-    std::atomic<bool> abortSearch;
+    volatile bool searching;
+    volatile bool abortSearch;
     int currentDepthInSearch;
 
     int Search(int depth, int ply, int alpha, int beta);

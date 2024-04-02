@@ -17,7 +17,7 @@ public:
         MOVING_PIECES
     };
 
-    Board(float posX, float posY, float width, float height, const Renderer &r, ChessAI &chessAI, MoveGenerator &moveGen);
+    Board(float posX, float posY, float width, float height, const Renderer &r, std::shared_ptr<MoveGenerator> moveGen);
     ~Board();
 
     // shows board on screen
@@ -37,7 +37,7 @@ public:
     void SetPosition(float x, float y);
     void SetCenter(float x, float y);
     void ReCalculateMVP();
-    
+
     // returns true if the board has been clicked
     bool ClickEvent(float mouseX, float mouseY);
 
@@ -58,6 +58,8 @@ public:
     // get state of the board
     inline State GetState() const { return state; }
 
+    inline bool ReadyToMove() const { return state == State::UNSELECTED || state == State::PIECE_SELECTED; }
+
 private:
     State state;
     std::unique_ptr<Object> resultText;
@@ -65,7 +67,7 @@ private:
     std::array<std::array<std::unique_ptr<Square>, 8>, 8> squares;
     float squareWidth;
     float squareHeight;
-    //bool pieceSelected = false;
+    // bool pieceSelected = false;
 
     bool rotated = false;
 
@@ -74,9 +76,7 @@ private:
 
     PieceType promoPiece = PieceType::EMPTY;
 
-    MoveGenerator &moveGenerator;
-
-    ChessAI &chessAI;
+    std::shared_ptr<MoveGenerator> moveGenerator;
 
     std::unique_ptr<PromotionSelector> promotionSelector;
 
