@@ -35,6 +35,8 @@ public:
 
     bool isCapture(MoveType type) const;
 
+    // Updates legalMovesArray and check if it contains the move
+    bool IsMoveLegal(Move move);
 private:
 
     MoveArray *legalMoves;

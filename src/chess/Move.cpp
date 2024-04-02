@@ -60,6 +60,15 @@ Move &Move::operator=(Move &&other) noexcept
     return *this;
 }
 
+bool Move::operator==(const Move &other) const
+{
+    return iniRow == other.iniRow &&
+           iniCol == other.iniCol &&
+           endRow == other.endRow &&
+           endCol == other.endCol &&
+           type == other.type;
+}
+
 std::string Move::ToBasicString() const
 {
     std::string result;

@@ -18,6 +18,7 @@ public:
     inline void SetState(const std::string &&state) { stateMessage.SetText(std::move(state)); }
     inline void SetDepth(const std::string &&depth) { depthSearched.SetText(std::move(depth)); }
     inline void SetNodes(const std::string &&nodes) { nodesVisited.SetText(std::move(nodes)); }
+    inline void SetInfo(const std::string &&info) { infoSearch.SetText(std::move(info)); }
 
 private:
     float textHeight = 20.f;
@@ -25,4 +26,5 @@ private:
     TextObject stateMessage;
     TextObject depthSearched;
     TextObject nodesVisited;
+    TextObject infoSearch;
 };

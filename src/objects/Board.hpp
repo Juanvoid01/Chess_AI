@@ -1,5 +1,6 @@
 #pragma once
 
+#include "InvalidMoveException.hpp"
 #include "Square.hpp"
 #include "ChessAI.hpp"
 #include "PromotionSelector.hpp"
@@ -47,6 +48,7 @@ public:
     void MakeMove(Move move);
 
     // executes the move selected by the IA
+    // throws InvalidMoveException
     void MoveIA(Move move);
 
     // highlights the last move played
@@ -67,7 +69,6 @@ private:
     std::array<std::array<std::unique_ptr<Square>, 8>, 8> squares;
     float squareWidth;
     float squareHeight;
-    // bool pieceSelected = false;
 
     bool rotated = false;
 
@@ -139,4 +140,7 @@ private:
 
     // set All pieces visibility to a value
     void SetPiecesVisibility(bool value);
+
+    // returns false if the move is not valid in the move generator
+    bool IsValidMove(Move move) const;
 };

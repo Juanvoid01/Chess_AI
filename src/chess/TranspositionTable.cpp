@@ -15,7 +15,6 @@ TranspositionTable::TranspositionTable()
 // get the stored value of the entry[zobristValue], returns -1 if there is no value stored
 int TranspositionTable::GetEvaluation(uint64_t zobristValue, int depth, int plyFromRoot, int alpha, int beta)
 {
-
     TranspositionTable::Entry entry = entries[GetIndex(zobristValue)];
 
     if (entry.key != zobristValue)

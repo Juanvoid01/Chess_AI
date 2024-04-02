@@ -270,13 +270,17 @@ bool Board::ClickEvent(float mouseX, float mouseY)
 }
 
 // executes the move selected by the IA
+// throws InvalidMoveException
 void Board::MoveIA(Move move)
 {
-    if (!move.IsValid())
-        return;
 
     if (state != State::UNSELECTED && state != State::PIECE_SELECTED)
         return;
+
+    if (!IsValidMove(move))
+    {
+        throw InvalidMoveException("invalid MoveIA " + move.ToBasicString());
+    }
 
     state = State::MOVING_PIECES;
     selectedMove = move;
@@ -297,7 +301,10 @@ void Board::Rotate()
 void Board::MakeMove(Move move)
 {
     if (!move.IsValid())
-        return;
+        throw InvalidMoveException("Make Move not valid");
+
+    if (move.iniCol == move.endCol && move.iniRow == move.endRow)
+        throw InvalidMoveException("Make Move not valid, iniSquare == endSquare");
 
     SetPiecesVisibility(true);
     moveGenerator->MakeMove(move);
@@ -606,4 +613,25 @@ void Board::GetCoordsOfSquare(short row, short col, float &posX, float &posY) co
 {
     posX = GetX() + squareWidth * col;
     posY = GetY() + squareHeight * row;
+}
+
+// returns false if the move is not valid in the move generator
+bool Board::IsValidMove(Move move) const
+{
+    if (!move.IsValid())
+        return false;
+
+    MoveArray legalMoves;
+    int n_moves;
+    moveGenerator->GetLegalMoves(legalMoves, n_moves);
+
+    int i = 0;
+    bool found = true;
+    while (!found && i < n_moves)
+    {
+        found = legalMoves[i] == move;
+        i++;
+    }
+
+    return found;
 }

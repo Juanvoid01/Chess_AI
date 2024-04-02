@@ -31,7 +31,7 @@ public:
     short endRow;
     short endCol;
     MoveType type;
-    short evaluation; //used in the moveOrder class
+    short evaluation; // used in the moveOrder class
 
     Move(short iniRow = -1, short iniCol = -1, short endRow = -1, short endCol = -1, MoveType type = MoveType::QUIET);
 
@@ -45,10 +45,12 @@ public:
 
     Move &operator=(Move &&other) noexcept;
 
+    bool operator==(const Move &other) const;
+
     bool IsValid() const;
-    
+
     bool IsPromotion() const;
-    
+
     std::string ToBasicString() const;
 };
 

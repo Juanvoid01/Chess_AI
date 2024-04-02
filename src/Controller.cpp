@@ -16,9 +16,10 @@ Controller::Controller(const Renderer &renderer)
     actionController = std::make_unique<ActionController>(*this);
     actions = std::make_unique<Actions>(*actionController);
     informationText->SetScale(1.3f, 1.3f);
-    // board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
+    //board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
 
     board->SetCenter(renderer.GetWindowWidth() / 2.f, renderer.GetWindowHeight() / 2.f);
+    informationText->SetPosition(board->GetX() + board->GetWidth() + 20.f, board->GetY() + 80.f);
 }
 
 void Controller::Update()
@@ -62,11 +63,17 @@ void Controller::Update()
     {
         if (!chessAI->IsSearching())
         {
-            Move moveAI = chessAI->GetBestMove();
-
-            board->MoveIA(moveAI);
+            try
+            {
+                board->MoveIA(chessAI->GetBestMove());
+            }
+            catch (const InvalidMoveException &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
 
             state = State::NONE;
+            informationText->SetInfo(std::move(chessAI->infoSearch));
         }
         else
         {
@@ -112,10 +119,10 @@ void Controller::MakeIAmove()
 void Controller::Resize(float newWidth, float newHeight)
 {
     float newScale = newHeight / renderer.GetOriginalWindowHeight();
-    // board->ReCalculateMVP();
-    // informationText->ReCalculateMVP();
+
     board->SetScale(newScale, newScale);
     board->SetCenter(newWidth / 2.f, newHeight / 2.f);
 
-    informationText->SetScale(newScale, newScale);
+    informationText->SetScale(newScale * 1.3f, newScale * 1.3f);
+    informationText->SetPosition(board->GetX() + board->GetWidth() + 20.f, board->GetY() + 80.f);
 }

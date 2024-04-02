@@ -4,7 +4,6 @@
 ChessAI::ChessAI(std::shared_ptr<MoveGenerator> moveGen)
     : moveGenerator(moveGen), searching(false)
 {
-
 }
 
 ChessAI::~ChessAI()
@@ -46,19 +45,26 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
 
     abortSearch = false;
 
-    std::cout << "Search started :\nDepths : ";
+    // std::cout << "\nSearch : " << (turnToMove == PieceColor::WHITE ? "WHITE " : "BLACK ");
+    //  std::cout << "Search started :\nDepths : ";
 
     for (int searchDepth = 1; searchDepth <= maxDepth; searchDepth++)
     {
-
+        hasSearchedAtLeastOneMove = false;
         depthReached = searchDepth; // debug
 
-        std::cout << searchDepth << ' ' << std::flush;
+        // std::cout << searchDepth << ' ' << std::flush;
 
         Search(searchDepth, 0, negativeInfinity, positiveInfinity);
 
         if (abortSearch)
         {
+            /*if (hasSearchedAtLeastOneMove)
+            {
+                bestMoveFound = bestMoveInIteration;
+                bestEvalFound = bestEvalInIteration;
+            }*/
+
             break;
         }
         else
@@ -75,7 +81,15 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
             }
         }
     }
-    std::cout << "\nSearch Finished\n";
+    // std::cout << bestMoveFound.ToBasicString() << " Eval: " << bestEvalFound << '\n';
+
+    const std::string &&t = turnToMove == PieceColor::WHITE ? "white" : "black";
+    const std::string &&m = bestMoveFound.ToBasicString();
+    const std::string &&e = std::to_string(bestEvalFound);
+
+    infoSearch = "Info : turn " + t + " , move " + m + " , eval " + e;
+
+    // std::cout << "\nSearch Finished\n";
 }
 
 int ChessAI::Search(int depth, int ply, int alpha, int beta)
@@ -99,7 +113,7 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
     }
     uint64_t zobristOfThisPos = zobrist.GetHashValue();
 
-    int ttVal = ttTable.GetEvaluation(zobristOfThisPos, depth, ply, alpha, beta);
+    int ttVal = useTT ? ttTable.GetEvaluation(zobristOfThisPos, depth, ply, alpha, beta) : ttTable.lookupFailed;
     if (ttVal != ttTable.lookupFailed)
     {
         if (ply == 0)
@@ -160,7 +174,7 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
         if (evaluation > alpha)
         {
-            // bestMoveInPosition = moves[i];
+            bestMoveInPosition = moves[i];
 
             evaluationBound = ttTable.exact;
             alpha = evaluation;
@@ -168,6 +182,7 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
             {
                 bestMoveInIteration = moves[i];
                 bestEvalInIteration = evaluation;
+                hasSearchedAtLeastOneMove = true;
             }
         }
     }
@@ -177,10 +192,10 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
 
 int ChessAI::SearchCaptures(int alpha, int beta)
 {
-    /*if (abortSearch)
+    if (abortSearch)
     {
         return 0;
-    }*/
+    }
 
     nodesVisited++; // debug
 
@@ -211,6 +226,11 @@ int ChessAI::SearchCaptures(int alpha, int beta)
         evaluation = -SearchCaptures(-beta, -alpha);
 
         moveGenerator->UnMakeMove(moves[i], posInfoState);
+
+        if (abortSearch)
+        {
+            return 0;
+        }
 
         if (evaluation >= beta)
         {

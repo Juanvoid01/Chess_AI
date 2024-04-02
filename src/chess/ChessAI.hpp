@@ -26,6 +26,10 @@ public:
     volatile int depthReached = 0;
     volatile int nodesVisited = 0;
 
+    std::string infoSearch;
+
+    bool useTT = false;
+    
 private:
     Evaluator evaluator;
     MoveOrder moveOrder;
@@ -48,6 +52,7 @@ private:
     volatile bool searching;
     volatile bool abortSearch;
     int currentDepthInSearch;
+    bool hasSearchedAtLeastOneMove;
 
     int Search(int depth, int ply, int alpha, int beta);
 

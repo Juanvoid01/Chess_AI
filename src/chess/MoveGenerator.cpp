@@ -170,7 +170,7 @@ void MoveGenerator::MakeMove(Move move)
 
 void MoveGenerator::UnMakeMove(Move move, const PosStateInfo &lastStateInfo)
 {
-   
+
     if (move.type == MoveType::KINGCASTLE)
     {
         pieces[move.iniRow][move.iniCol] = pieces[move.endRow][move.endCol];
@@ -1678,4 +1678,22 @@ bool MoveGenerator::isValidEnPassant(short pieceRow, short pieceCol, short destR
     }
 
     return validMove;
+}
+
+// Updates legalMovesArray and check if it contains the move
+bool MoveGenerator::IsMoveLegal(Move move)
+{
+    bool valid = false;
+    MoveArray moves;
+    int n_moves;
+    GetLegalMoves(moves, n_moves);
+    int i = 0;
+    while (!valid && i < n_moves)
+    {
+        if (move == moves[i])
+            valid = true;
+
+        i++;
+    }
+    return valid;
 }

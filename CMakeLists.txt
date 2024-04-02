@@ -16,6 +16,7 @@ include_directories(src/utils)
 include_directories(src/objects)
 include_directories(src/actions)
 include_directories(src/chess)
+include_directories(src/exceptions)
 include_directories(src)
 include_directories(res)
 
