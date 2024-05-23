@@ -47,6 +47,10 @@ void EventManager::Key_pressed_callback(GLFWwindow *window, int key, int scancod
     {
         controller->AddAction(new AIPieceAction());
     }
+        else if (key == GLFW_KEY_N)
+    {
+        controller->AddAction(new StartGameAction(FEN_START_POS));
+    }
 }
 
 void EventManager::framebuffer_size_callback(GLFWwindow *window, int width, int height)

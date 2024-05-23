@@ -18,5 +18,10 @@ void ActionController::MakeMove(const Move &move)
 
 void ActionController::MakeIAmove()
 {
-        controller.MakeIAmove();
+    controller.MakeIAmove();
+}
+
+void ActionController::StartGame(const std::string &FEN)
+{
+    controller.StartGame(FEN);
 }

@@ -24,5 +24,6 @@ enum class Action::Type
 {
     NONE = 0,
     IA = 1,
-    ROTATEBOARD = 2
+    ROTATEBOARD = 2,
+    START_GAME = 3
 };

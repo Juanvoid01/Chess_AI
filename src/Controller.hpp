@@ -32,6 +32,7 @@ public:
 
     void MakeMove(const Move &move);
     void MakeIAmove();
+    void StartGame(const std::string &FEN);
 
     inline Board &GetBoard() { return *board; }
 

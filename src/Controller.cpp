@@ -16,10 +16,10 @@ Controller::Controller(const Renderer &renderer)
     actionController = std::make_unique<ActionController>(*this);
     actions = std::make_unique<Actions>(*actionController);
     informationText->SetScale(1.3f, 1.3f);
-    //board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
+    // board->LoadFEN(FEN_QUEEN_VS_PAWN_ENDGAME);
 
     board->SetCenter(renderer.GetWindowWidth() / 2.f, renderer.GetWindowHeight() / 2.f);
-    informationText->SetPosition(board->GetX() + board->GetWidth() + 20.f, board->GetY() + 80.f);
+    informationText->SetPosition(board->GetX() + board->GetWidth() + 20.f, board->GetY() + 120.f);
 }
 
 void Controller::Update()
@@ -39,7 +39,9 @@ void Controller::Update()
     {
         informationText->SetState(chessAI->IsSearching() ? "Search started" : "Search finished");
         informationText->SetDepth("Depth : " + std::to_string(chessAI->depthReached));
-        informationText->SetNodes("Nodes : " + std::to_string(chessAI->nodesVisited));
+        informationText->SetNodes("Nodes : " + std::to_string(chessAI->nodesVisited) +
+                                  " , CaptureNodes : " + std::to_string(chessAI->CaptureNodes));
+        informationText->SetCutoffs("Cuttoffs : " + std::to_string(chessAI->numCutoffs));
 
         if (infiniteSearch)
         {
@@ -58,6 +60,7 @@ void Controller::Update()
                 state = State::EXECUTING_IA_MOVE;
             }
         }
+        
     }
     else if (state == State::EXECUTING_IA_MOVE)
     {
@@ -116,6 +119,15 @@ void Controller::MakeIAmove()
         startTime = std::chrono::steady_clock::now();
 }
 
+void Controller::StartGame(const std::string &FEN)
+{
+    if (state != State::NONE)
+        return;
+
+    moveGenerator->LoadFEN(FEN);
+    board->StartNewGame();
+}
+
 void Controller::Resize(float newWidth, float newHeight)
 {
     float newScale = newHeight / renderer.GetOriginalWindowHeight();
@@ -124,5 +136,5 @@ void Controller::Resize(float newWidth, float newHeight)
     board->SetCenter(newWidth / 2.f, newHeight / 2.f);
 
     informationText->SetScale(newScale * 1.3f, newScale * 1.3f);
-    informationText->SetPosition(board->GetX() + board->GetWidth() + 20.f, board->GetY() + 80.f);
+    informationText->SetPosition(board->GetX() + board->GetWidth() + 20.f, board->GetY() + 120.f);
 }

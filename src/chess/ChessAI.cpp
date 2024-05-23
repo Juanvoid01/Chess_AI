@@ -14,6 +14,8 @@ void ChessAI::StartSearch(int maxDepth)
 {
     depthReached = 0;
     nodesVisited = 0;
+    numCutoffs = 0;
+    CaptureNodes = 0;
     searching = true;
 
     bestEvalInIteration = 0;
@@ -85,9 +87,11 @@ void ChessAI::RunIterativeDeepening(int maxDepth)
 
     const std::string &&t = turnToMove == PieceColor::WHITE ? "white" : "black";
     const std::string &&m = bestMoveFound.ToBasicString();
-    const std::string &&e = std::to_string(bestEvalFound);
 
-    infoSearch = "Info : turn " + t + " , move " + m + " , eval " + e;
+    int normalizedEval = turnToMove == PieceColor::WHITE ? bestEvalFound : -bestEvalFound;
+    const std::string &&e = std::to_string(normalizedEval);
+
+    infoSearch = "Info : " + t + " , move " + m + " , eval " + e;
 
     // std::cout << "\nSearch Finished\n";
 }
@@ -108,6 +112,7 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
         beta = std::min(beta, immediateMateScore - ply);
         if (alpha >= beta)
         {
+            numCutoffs++; // debug
             return alpha;
         }
     }
@@ -168,7 +173,7 @@ int ChessAI::Search(int depth, int ply, int alpha, int beta)
         if (evaluation >= beta)
         {
             ttTable.StoreEvaluation(zobristOfThisPos, depth, ply, beta, ttTable.lowerBound, moves[i]);
-
+            numCutoffs++; // debug
             return beta;
         }
 
@@ -197,7 +202,7 @@ int ChessAI::SearchCaptures(int alpha, int beta)
         return 0;
     }
 
-    nodesVisited++; // debug
+    CaptureNodes++; // debug
 
     int evaluation = evaluator.GetEvaluation(moveGenerator->GetPieceArray(), moveGenerator->GetTurn());
 

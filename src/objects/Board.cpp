@@ -144,6 +144,15 @@ void Board::Update()
             state = State::UNSELECTED;
         }
     }
+    else if (state == State::GAME_FINISHED)
+    {
+        if (startNewGame)
+        {
+            startNewGame = false;
+            CopyBoardFromEngine();
+            state == State::UNSELECTED;
+        }
+    }
     else
     {
     }

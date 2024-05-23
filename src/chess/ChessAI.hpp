@@ -25,7 +25,8 @@ public:
 
     volatile int depthReached = 0;
     volatile int nodesVisited = 0;
-
+    volatile int numCutoffs = 0;
+    volatile int CaptureNodes = 0;
     std::string infoSearch;
 
     bool useTT = false;

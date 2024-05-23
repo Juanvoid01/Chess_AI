@@ -15,7 +15,8 @@ public:
         UNSELECTED,
         PIECE_SELECTED,
         SELECTING_PROMO,
-        MOVING_PIECES
+        MOVING_PIECES,
+        GAME_FINISHED
     };
 
     Board(float posX, float posY, float width, float height, const Renderer &r, std::shared_ptr<MoveGenerator> moveGen);
@@ -62,6 +63,8 @@ public:
 
     inline bool ReadyToMove() const { return state == State::UNSELECTED || state == State::PIECE_SELECTED; }
 
+    inline void StartNewGame() { startNewGame = true; }
+
 private:
     State state;
     std::unique_ptr<Object> resultText;
@@ -81,6 +84,7 @@ private:
 
     std::unique_ptr<PromotionSelector> promotionSelector;
 
+    bool startNewGame = false;
     bool clicked = false;
     short rowClicked = -1, colClicked = -1;
     float clickX = -1, clickY = -1;

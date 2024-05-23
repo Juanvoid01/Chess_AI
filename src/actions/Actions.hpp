@@ -5,7 +5,7 @@
 #include "NoneAction.hpp"
 #include "AIaction.hpp"
 #include "RotateBoardAction.hpp"
-
+#include "StartGameAction.hpp"
 
 class Actions
 {

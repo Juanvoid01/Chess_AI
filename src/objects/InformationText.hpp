@@ -18,6 +18,8 @@ public:
     inline void SetState(const std::string &&state) { stateMessage.SetText(std::move(state)); }
     inline void SetDepth(const std::string &&depth) { depthSearched.SetText(std::move(depth)); }
     inline void SetNodes(const std::string &&nodes) { nodesVisited.SetText(std::move(nodes)); }
+    inline void SetCutoffs(const std::string &&cuts) { cutoffs.SetText(std::move(cuts)); }
+
     inline void SetInfo(const std::string &&info) { infoSearch.SetText(std::move(info)); }
 
 private:
@@ -26,5 +28,6 @@ private:
     TextObject stateMessage;
     TextObject depthSearched;
     TextObject nodesVisited;
+    TextObject cutoffs;
     TextObject infoSearch;
 };
