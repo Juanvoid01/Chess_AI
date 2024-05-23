@@ -5,7 +5,7 @@ InformationText::InformationText(float posX, float posY, const Renderer &r)
       stateMessage("Search not started", posX, posY, r),
       depthSearched("Depth : 0", posX, posY - textHeight, r),
       nodesVisited("Nodes : 0 , CaptureNodes : 0", posX, posY - 2 * textHeight, r),
-      cutoffs("Cuttoffs : 0", posX, posY - 3 * textHeight, r),
+      cutoffs("Cutoffs : 0", posX, posY - 3 * textHeight, r),
       infoSearch("Info : white , move a1a2 , eval 0", posX, posY - 4 * textHeight, r)
 {
 }

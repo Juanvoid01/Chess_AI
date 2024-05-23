@@ -41,7 +41,7 @@ void Controller::Update()
         informationText->SetDepth("Depth : " + std::to_string(chessAI->depthReached));
         informationText->SetNodes("Nodes : " + std::to_string(chessAI->nodesVisited) +
                                   " , CaptureNodes : " + std::to_string(chessAI->CaptureNodes));
-        informationText->SetCutoffs("Cuttoffs : " + std::to_string(chessAI->numCutoffs));
+        informationText->SetCutoffs("Cutoffs : " + std::to_string(chessAI->numCutoffs));
 
         if (infiniteSearch)
         {
